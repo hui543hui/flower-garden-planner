@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -75,27 +76,8 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 </section>
 
 <section>
-<h2>✨ 本週雙倍活動</h2>
-<label>目前活動週次</label>
-<select id="week">
-<option value="1">第 1 週：紫色</option>
-<option value="2">第 2 週：金／紫／藍色</option>
-<option value="3">第 3 週：金／紫／藍色</option>
-<option value="4">第 4 週：紫／藍色</option>
-<option value="5">第 5 週：紫／藍色（新花靈週期）</option>
-<option value="0">活動結束：沒有雙倍</option>
-</select>
-<p class="small">以下顏色會作為新增寶寶時的預設雙倍狀態。實際仍請依照本週指定輔花確認。</p>
-<div class="three">
-<div><label>🟡 金色雙倍</label><select id="goldDouble"><option value="0">否</option><option value="1">是</option></select></div>
-<div><label>🟣 紫色雙倍</label><select id="purpleDouble"><option value="0">否</option><option value="1">是</option></select></div>
-<div><label>🔵 藍色雙倍</label><select id="blueDouble"><option value="0">否</option><option value="1">是</option></select></div>
-</div>
-</section>
-
-<section>
 <h2>🌱 新增自己刷出的寶寶</h2>
-<p class="small">每次新增一批寶寶。三種顏色可以分別輸入數量及雙倍狀態。</p>
+<p class="small">每次新增一批寶寶。三種顏色可以分別輸入數量及雙倍狀態。雙倍預設為「否」，有雙倍資格時請手動選擇「是」。</p>
 <div class="three">
 <div class="color-card">
 <strong>🟡 金色</strong>
@@ -114,12 +96,11 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 </div>
 </div>
 <button onclick="addSelfBatch()">＋ 新增自己刷的寶寶</button>
-<p class="small">新增時會依照上方活動設定帶入雙倍預設值；你仍可自行調整每種顏色。</p>
 </section>
 
 <section>
 <h2>🎁 新增抓別人的寶寶</h2>
-<p class="small">每天最多抓 4 隻。請輸入今天抓到的各顏色數量，系統會自動加入獨立倉庫。</p>
+<p class="small">每天最多抓 4 隻。請輸入今天抓到的各顏色數量，系統會自動加入獨立倉庫。雙倍預設為「否」，有雙倍資格時請手動選擇「是」。</p>
 <div class="three">
 <div class="color-card">
 <strong>🟡 金色</strong>
@@ -198,7 +179,7 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 </section>
 
 </main>
-<footer>我的花園世界 🌸 第三版</footer>
+<footer>我的花園世界 🌸 第四版</footer>
 
 <script>
 const $=id=>document.getElementById(id);
@@ -227,16 +208,16 @@ function refreshCatchDay(){
 }
 
 function save(){
- const ids=["goal9999","goal5999","goal3999","otherGoal","currentCoins","shopDays","flowerStatus","week","goldDouble","purpleDouble","blueDouble"];
+ const ids=["goal9999","goal5999","goal3999","otherGoal","currentCoins","shopDays","flowerStatus"];
  let values={};
  ids.forEach(id=>values[id]=$(id).value);
- localStorage.setItem("gardenPlannerV3",JSON.stringify({
+ localStorage.setItem("gardenPlannerV4",JSON.stringify({
   values,selfBatches,caughtBatches,dailyCatchDate,dailyCatchCount,dispatchResult
  }));
 }
 
 function load(){
- let data=JSON.parse(localStorage.getItem("gardenPlannerV3")||"null");
+ let data=JSON.parse(localStorage.getItem("gardenPlannerV4")||"null");
 
  if(data){
   Object.keys(data.values||{}).forEach(id=>{
@@ -248,44 +229,55 @@ function load(){
   dailyCatchCount=Number(data.dailyCatchCount)||0;
   dispatchResult=data.dispatchResult||"目前沒有派遣紀錄。";
  }else{
-  // 從第二版搬移原本的設定與寶寶庫存
-  let old=JSON.parse(localStorage.getItem("gardenPlannerV2")||"null");
+  // 優先搬移第三版資料
+  let old=JSON.parse(localStorage.getItem("gardenPlannerV3")||"null");
+
   if(old){
    Object.keys(old.values||{}).forEach(id=>{
     if($(id))$(id).value=old.values[id];
    });
-   selfBatches=old.batches||[];
+   selfBatches=old.selfBatches||old.batches||[];
+   caughtBatches=old.caughtBatches||[];
+   dailyCatchDate=old.dailyCatchDate||today();
+   dailyCatchCount=Number(old.dailyCatchCount)||0;
+   dispatchResult=old.dispatchResult||"目前沒有派遣紀錄。";
   }else{
-   let previous=JSON.parse(localStorage.getItem("gardenPlanner")||"null");
-   if(previous?.values){
-    Object.keys(previous.values).forEach(id=>{
+   let previous=JSON.parse(localStorage.getItem("gardenPlannerV2")||"null");
+   if(previous){
+    Object.keys(previous.values||{}).forEach(id=>{
      if($(id))$(id).value=previous.values[id];
     });
-   }
-   let oldBabies=JSON.parse(localStorage.getItem("gardenBabies")||"[]");
-   oldBabies.forEach(b=>{
-    if(colors[b.color]&&Number(b.qty)>0){
-     selfBatches.push({
-      id:Date.now()+Math.random(),
-      color:b.color,
-      qty:Number(b.qty),
-      dbl:Number(b.dbl)?1:0
+    selfBatches=previous.batches||[];
+   }else{
+    let first=JSON.parse(localStorage.getItem("gardenPlanner")||"null");
+    if(first?.values){
+     Object.keys(first.values).forEach(id=>{
+      if($(id))$(id).value=first.values[id];
      });
     }
-   });
+    let oldBabies=JSON.parse(localStorage.getItem("gardenBabies")||"[]");
+    oldBabies.forEach(b=>{
+     if(colors[b.color]&&Number(b.qty)>0){
+      selfBatches.push({
+       id:Date.now()+Math.random(),
+       color:b.color,
+       qty:Number(b.qty),
+       dbl:Number(b.dbl)?1:0
+      });
+     }
+    });
+   }
+   dailyCatchDate=today();
+   dailyCatchCount=0;
   }
-  dailyCatchDate=today();
-  dailyCatchCount=0;
  }
 
- // 舊版預設值調整：5999 幣花朵預設數量改為 1
- if(!$("goal5999").value || $("goal5999").value==="2"){
-  $("goal5999").value=1;
+ // 僅在舊版預設值為 2 時改成 1
+ if($("goal5999").value==="2"){
+  $("goal5999").value="1";
  }
 
  refreshCatchDay();
- syncBatchDefaults();
- syncCatchDefaults();
  render();
 }
 
@@ -313,28 +305,6 @@ function daily(){
  $("dailyCatch").textContent=dailyCatchCount+"/4";
  $("dailyRemaining").textContent=Math.max(0,4-dailyCatchCount);
  $("catchHint").textContent="今天已抓 "+dailyCatchCount+" 隻，還可以抓 "+Math.max(0,4-dailyCatchCount)+" 隻。";
-}
-
-function setWeekDefaults(){
- let w=Number($("week").value);
- $("goldDouble").value=(w===2||w===3)?1:0;
- $("purpleDouble").value=(w>=1&&w<=5)?1:0;
- $("blueDouble").value=(w>=2&&w<=5)?1:0;
- syncBatchDefaults();
- syncCatchDefaults();
- save();
-}
-
-function syncBatchDefaults(){
- $("goldBatchDouble").value=$("goldDouble").value;
- $("purpleBatchDouble").value=$("purpleDouble").value;
- $("blueBatchDouble").value=$("blueDouble").value;
-}
-
-function syncCatchDefaults(){
- $("catchGoldDouble").value=$("goldDouble").value;
- $("catchPurpleDouble").value=$("purpleDouble").value;
- $("catchBlueDouble").value=$("blueDouble").value;
 }
 
 function addSelfBatch(){
@@ -495,7 +465,7 @@ function clearDispatchRecord(){
 
 function exportData(){
  save();
- let data=localStorage.getItem("gardenPlannerV3");
+ let data=localStorage.getItem("gardenPlannerV4");
  let blob=new Blob([data],{type:"application/json"});
  let a=document.createElement("a");
  a.href=URL.createObjectURL(blob);
@@ -512,7 +482,6 @@ function importData(e){
  reader.onload=()=>{
   try{
    let d=JSON.parse(reader.result);
-
    if(!d.values)throw new Error();
 
    if(Array.isArray(d.selfBatches)){
@@ -529,18 +498,11 @@ function importData(e){
    dailyCatchCount=Number(d.dailyCatchCount)||0;
    dispatchResult=d.dispatchResult||"目前沒有派遣紀錄。";
 
-   localStorage.setItem("gardenPlannerV3",JSON.stringify({
-    values:d.values,selfBatches,caughtBatches,
-    dailyCatchDate,dailyCatchCount,dispatchResult
-   }));
-
    Object.keys(d.values).forEach(id=>{
     if($(id))$(id).value=d.values[id];
    });
 
    refreshCatchDay();
-   syncBatchDefaults();
-   syncCatchDefaults();
    render();save();
    alert("匯入成功！");
   }catch(err){
@@ -553,6 +515,7 @@ function importData(e){
 
 function resetData(){
  if(!confirm("確定清除所有資料？此操作無法復原。"))return;
+ localStorage.removeItem("gardenPlannerV4");
  localStorage.removeItem("gardenPlannerV3");
  localStorage.removeItem("gardenPlannerV2");
  localStorage.removeItem("gardenPlanner");
@@ -566,16 +529,6 @@ function resetData(){
 
 $("flowerStatus").addEventListener("change",()=>{
  daily();save();
-});
-
-$("week").addEventListener("change",setWeekDefaults);
-
-["goldDouble","purpleDouble","blueDouble"].forEach(id=>{
- $(id).addEventListener("change",()=>{
-  syncBatchDefaults();
-  syncCatchDefaults();
-  save();
- });
 });
 
 load();
