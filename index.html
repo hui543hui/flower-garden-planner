@@ -9,58 +9,46 @@
 body{margin:0;background:#f8f5fa;color:#40394a;font-family:Arial,"Noto Sans TC",sans-serif}
 header{background:#9575b8;color:white;padding:25px 18px;text-align:center}
 header h1{margin:0;font-size:24px}
-header p{margin:8px 0 0;font-size:13px}
+header p{font-size:13px;margin:8px 0 0}
 main{max-width:760px;margin:auto;padding:16px}
 section{background:white;border-radius:15px;padding:18px;margin:14px 0;box-shadow:0 2px 9px #0000000b}
 h2{font-size:18px;margin:0 0 14px;color:#79569b}
-h3{font-size:15px;margin:14px 0 8px}
 label{display:block;font-size:13px;margin:10px 0 5px}
 input,select{width:100%;padding:11px;border:1px solid #ddd2e8;border-radius:9px;font-size:15px;background:white;color:#40394a}
 button{border:0;border-radius:9px;padding:11px 15px;background:#9575b8;color:white;font-size:14px;cursor:pointer;margin-top:10px}
-button.secondary{background:#eee7f4;color:#674a82}
-button.danger{background:#f5e5e5;color:#9c4444}
+.secondary{background:#eee7f4;color:#674a82}
+.danger{background:#f5e5e5;color:#9c4444}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
 .stat{background:#f5eff9;padding:12px;border-radius:10px;text-align:center}
 .stat strong{display:block;font-size:22px;color:#79569b;margin-top:5px}
-.small{font-size:12px;color:#877e8f;line-height:1.6}
+.small{font-size:12px;color:#877e8f;line-height:1.7}
 .result{font-size:16px;font-weight:bold;margin-top:12px;color:#79569b}
+.color-card{background:#faf8fc;border:1px solid #eee5f4;border-radius:10px;padding:10px}
+.color-card label{margin-top:5px}
 table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
 td,th{padding:9px 5px;border-bottom:1px solid #eee;text-align:left}
 th{color:#79569b}
-.tag{display:inline-block;background:#f0e9f5;border-radius:20px;padding:3px 8px;font-size:12px}
 footer{text-align:center;color:#999;font-size:12px;padding:20px}
-@media(max-width:480px){.row{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}table{font-size:12px}}
+@media(max-width:480px){.row{grid-template-columns:1fr}.three{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 <header>
 <h1>🌸 我的花園世界</h1>
-<p>花靈收藏・寶寶庫存・派遣收益計算器</p>
+<p>花靈收藏・寶寶倉庫・派遣收益計算器</p>
 </header>
 <main>
 
 <section>
 <h2>🌷 商店收藏目標</h2>
 <div class="row">
-<div>
-<label>9999 幣花朵數量</label>
-<input id="goal9999" type="number" min="0" value="1">
+<div><label>9999 幣花朵數量</label><input id="goal9999" type="number" min="0" value="1"></div>
+<div><label>5999 幣花朵數量</label><input id="goal5999" type="number" min="0" value="2"></div>
+<div><label>3999 幣花朵數量</label><input id="goal3999" type="number" min="0" value="3"></div>
+<div><label>其他商品所需幣值</label><input id="otherGoal" type="number" min="0" value="0"></div>
 </div>
-<div>
-<label>5999 幣花朵數量</label>
-<input id="goal5999" type="number" min="0" value="2">
-</div>
-<div>
-<label>3999 幣花朵數量</label>
-<input id="goal3999" type="number" min="0" value="3">
-</div>
-<div>
-<label>其他商品所需幣值</label>
-<input id="otherGoal" type="number" min="0" value="0">
-</div>
-</div>
-<div class="result" id="goalResult">目標總幣值：41,993</div>
+<div class="result" id="goalResult"></div>
 <label>目前已有幣值</label>
 <input id="currentCoins" type="number" min="0" value="0">
 <label>距離商店刷新還有幾天</label>
@@ -82,115 +70,135 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <div>
 <label>每天抓別人的寶寶</label>
 <select id="catchCount">
-<option value="0">0 隻</option><option value="1">1 隻</option>
-<option value="2">2 隻</option><option value="3">3 隻</option>
+<option value="0">0 隻</option>
+<option value="1">1 隻</option>
+<option value="2">2 隻</option>
+<option value="3">3 隻</option>
 <option value="4" selected>4 隻</option>
 </select>
 </div>
 </div>
-<p class="small">抓別人的寶寶每日最多 4 隻；抓到的寶寶也會依輔花顏色計算收益。</p>
-<div class="cards">
+<div class="three">
 <div class="stat">每日可刷<strong id="dailyCount">0</strong></div>
-<div class="stat">每日最多可抓<strong id="dailyCatch">4</strong></div>
+<div class="stat">每日抓取<strong id="dailyCatch">4</strong></div>
 <div class="stat">每日總額度<strong id="dailyTotal">4</strong></div>
 </div>
 </section>
 
 <section>
-<h2>✨ 雙倍活動設定</h2>
+<h2>✨ 本週雙倍活動</h2>
 <label>目前活動週次</label>
 <select id="week">
-<option value="1">第 1 週：紫色雙倍</option>
-<option value="2">第 2 週：金／紫／藍色雙倍</option>
-<option value="3">第 3 週：金／紫／藍色雙倍</option>
-<option value="4">第 4 週：紫／藍色雙倍</option>
-<option value="5">第 5 週：紫／藍色雙倍（新花靈週期）</option>
+<option value="1">第 1 週：紫色</option>
+<option value="2">第 2 週：金／紫／藍色</option>
+<option value="3">第 3 週：金／紫／藍色</option>
+<option value="4">第 4 週：紫／藍色</option>
+<option value="5">第 5 週：紫／藍色（新花靈週期）</option>
 <option value="0">活動結束：沒有雙倍</option>
 </select>
-<p class="small">此處先依照每週官方活動規則設定。實際指定花朵仍需依當輪公告確認。</p>
-<div class="row">
-<div>
-<label>金色輔花是否為本週雙倍</label>
-<select id="goldDouble"><option value="0">否</option><option value="1">是</option></select>
+<p class="small">以下顏色會作為新增寶寶時的預設雙倍狀態。實際仍請依照本週指定輔花確認。</p>
+<div class="three">
+<div><label>🟡 金色雙倍</label><select id="goldDouble"><option value="0">否</option><option value="1">是</option></select></div>
+<div><label>🟣 紫色雙倍</label><select id="purpleDouble"><option value="0">否</option><option value="1">是</option></select></div>
+<div><label>🔵 藍色雙倍</label><select id="blueDouble"><option value="0">否</option><option value="1">是</option></select></div>
 </div>
-<div>
-<label>紫色輔花是否為本週雙倍</label>
-<select id="purpleDouble"><option value="0">否</option><option value="1">是</option></select>
-</div>
-<div>
-<label>藍色輔花是否為本週雙倍</label>
-<select id="blueDouble"><option value="0">否</option><option value="1">是</option></select>
-</div>
-</div>
-<p class="small">第五週可能同時遇到新舊花靈活動，請依實際公告勾選指定輔花。</p>
 </section>
 
 <section>
-<h2>📦 寶寶庫存</h2>
-<p class="small">新增寶寶時，選擇顏色及目前派遣時是否符合雙倍資格。寶寶可以先存著，等適合的活動週再派遣。</p>
-<div class="row">
-<div>
-<label>輔花顏色</label>
-<select id="babyColor">
-<option value="gold">金色（4 幣）</option>
-<option value="purple">紫色（3 幣）</option>
-<option value="blue">藍色（2 幣）</option>
-</select>
+<h2>📦 新增寶寶庫存</h2>
+<p class="small">每次新增一批寶寶。三種顏色可以分別輸入數量及雙倍狀態，不需要輸入寶寶名稱。</p>
+
+<div class="three">
+<div class="color-card">
+<strong>🟡 金色</strong>
+<label>數量</label>
+<input id="goldQty" type="number" min="0" value="0">
+<label>是否雙倍</label>
+<select id="goldBatchDouble"><option value="0">否</option><option value="1">是</option></select>
 </div>
-<div>
-<label>寶寶數量</label>
-<input id="babyQty" type="number" min="1" value="1">
+<div class="color-card">
+<strong>🟣 紫色</strong>
+<label>數量</label>
+<input id="purpleQty" type="number" min="0" value="0">
+<label>是否雙倍</label>
+<select id="purpleBatchDouble"><option value="0">否</option><option value="1">是</option></select>
+</div>
+<div class="color-card">
+<strong>🔵 藍色</strong>
+<label>數量</label>
+<input id="blueQty" type="number" min="0" value="0">
+<label>是否雙倍</label>
+<select id="blueBatchDouble"><option value="0">否</option><option value="1">是</option></select>
 </div>
 </div>
-<label>派遣時是否符合雙倍資格？</label>
-<select id="babyDouble">
-<option value="0">否，正常幣值</option>
-<option value="1">是，符合本週雙倍</option>
-</select>
-<button onclick="addBaby()">＋ 加入寶寶庫存</button>
+<button onclick="addBatch()">＋ 新增這批寶寶</button>
+<p class="small">新增時會依照上方活動設定帶入雙倍預設值；你仍可自行調整每種顏色。</p>
+</section>
+
+<section>
+<h2>🧺 我的寶寶倉庫</h2>
 <div id="inventory"></div>
 <div class="result" id="inventoryTotal"></div>
+<button onclick="dispatchAll()">🚀 派遣全部庫存</button>
+<p class="small">派遣全部後，預估收益會加進目前幣值，並清空倉庫。請確認寶寶確實已派遣並完成收穫後，再使用此功能。</p>
+<div class="result" id="dispatchResult"></div>
 </section>
 
 <section>
-<h2>🚀 派遣收益試算</h2>
-<div class="cards">
-<div class="stat">金色<strong>4 幣</strong></div>
-<div class="stat">紫色<strong>3 幣</strong></div>
-<div class="stat">藍色<strong>2 幣</strong></div>
+<h2>📊 收藏進度</h2>
+<div class="three">
+<div class="stat">目標幣值<strong id="progressGoal">0</strong></div>
+<div class="stat">目前幣值<strong id="progressCurrent">0</strong></div>
+<div class="stat">還差<strong id="progressLeft">0</strong></div>
 </div>
-<p class="small">符合雙倍資格時，金色 8 幣、紫色 6 幣、藍色 4 幣。雙倍寶寶必須在星期日 23:59 前完成收穫。</p>
-<button onclick="dispatchAll()">計算並派遣全部庫存</button>
-<div class="result" id="dispatchResult">尚未派遣</div>
+<div class="result" id="dailyNeed"></div>
 </section>
 
 <section>
-<h2>💾 資料保存</h2>
-<p class="small">資料會自動儲存在目前裝置的瀏覽器中。更換手機或清除瀏覽器資料可能導致紀錄消失。</p>
+<h2>💾 資料備份</h2>
+<p class="small">資料會保存在目前瀏覽器中。若更換手機、瀏覽器或清除網站資料，請先匯出備份。</p>
 <button class="secondary" onclick="exportData()">匯出備份</button>
-<button class="secondary" onclick="document.getElementById('importFile').click()">匯入備份</button>
+<button class="secondary" onclick="$('importFile').click()">匯入備份</button>
 <input id="importFile" type="file" accept=".json" style="display:none" onchange="importData(event)">
 <button class="danger" onclick="resetData()">清除所有資料</button>
 </section>
 
 </main>
-<footer>我的花園世界 🌸 第一版試用版</footer>
+<footer>我的花園世界 🌸 第二版</footer>
 
 <script>
 const $=id=>document.getElementById(id);
-let babies=JSON.parse(localStorage.getItem("gardenBabies")||"[]");
+const colors={
+ gold:{name:"金色",base:4},
+ purple:{name:"紫色",base:3},
+ blue:{name:"藍色",base:2}
+};
+let batches=[];
 
 function save(){
  const ids=["goal9999","goal5999","goal3999","otherGoal","currentCoins","shopDays","flowerStatus","catchCount","week","goldDouble","purpleDouble","blueDouble"];
- let data={babies,values:{}};
- ids.forEach(id=>data.values[id]=$(id).value);
- localStorage.setItem("gardenPlanner",JSON.stringify(data));
- localStorage.setItem("gardenBabies",JSON.stringify(babies));
+ let values={};
+ ids.forEach(id=>values[id]=$(id).value);
+ localStorage.setItem("gardenPlannerV2",JSON.stringify({values,batches}));
 }
 function load(){
- let data=JSON.parse(localStorage.getItem("gardenPlanner")||"null");
- if(data&&data.values)Object.keys(data.values).forEach(id=>{if($(id))$(id).value=data.values[id]});
- babies=data?.babies||JSON.parse(localStorage.getItem("gardenBabies")||"[]");
+ let old=JSON.parse(localStorage.getItem("gardenPlannerV2")||"null");
+ if(old){
+  Object.keys(old.values||{}).forEach(id=>{if($(id))$(id).value=old.values[id]});
+  batches=old.batches||[];
+ }else{
+  // 沿用第一版的設定與寶寶庫存
+  let previous=JSON.parse(localStorage.getItem("gardenPlanner")||"null");
+  if(previous?.values){
+   Object.keys(previous.values).forEach(id=>{if($(id))$(id).value=previous.values[id]});
+  }
+  let oldBabies=JSON.parse(localStorage.getItem("gardenBabies")||"[]");
+  oldBabies.forEach(b=>{
+   if(colors[b.color]&&Number(b.qty)>0){
+    batches.push({id:Date.now()+Math.random(),color:b.color,qty:Number(b.qty),dbl:Number(b.dbl)?1:0});
+   }
+  });
+ }
  render();
 }
 function goals(){
@@ -198,11 +206,15 @@ function goals(){
  Number($("goal5999").value)*5999+
  Number($("goal3999").value)*3999+
  Number($("otherGoal").value);
- $("goalResult").textContent="目標總幣值："+total.toLocaleString()+" 幣";
- let remain=Math.max(0,total-Number($("currentCoins").value));
+ let current=Number($("currentCoins").value)||0;
+ let left=Math.max(0,total-current);
  let days=Number($("shopDays").value);
- $("remainingResult").textContent="還差 "+remain.toLocaleString()+" 幣；每天平均需取得 "+
- (days>0?(remain/days).toFixed(1):"—")+" 幣";
+ $("goalResult").textContent="目標總幣值："+total.toLocaleString()+" 幣";
+ $("remainingResult").textContent="還差 "+left.toLocaleString()+" 幣；每天平均需要 "+(days>0?(left/days).toFixed(1):"—")+" 幣";
+ $("progressGoal").textContent=total.toLocaleString();
+ $("progressCurrent").textContent=current.toLocaleString();
+ $("progressLeft").textContent=left.toLocaleString();
+ $("dailyNeed").textContent="依照剩餘天數，每天平均需取得 "+(days>0?(left/days).toFixed(1):"—")+" 幣";
 }
 function daily(){
  let n=Number($("flowerStatus").value),c=Number($("catchCount").value);
@@ -210,66 +222,105 @@ function daily(){
  $("dailyCatch").textContent=c;
  $("dailyTotal").textContent=n+c;
 }
-function addBaby(){
- let color=$("babyColor").value,qty=Math.max(1,Number($("babyQty").value));
- let dbl=Number($("babyDouble").value);
- babies.push({color,qty,dbl});
+function setWeekDefaults(){
+ let w=Number($("week").value);
+ $("goldDouble").value=(w===2||w===3)?1:0;
+ $("purpleDouble").value=(w>=1&&w<=5)?1:0;
+ $("blueDouble").value=(w>=2&&w<=5)?1:0;
+ save();
+}
+function syncBatchDefaults(){
+ $("goldBatchDouble").value=$("goldDouble").value;
+ $("purpleBatchDouble").value=$("purpleDouble").value;
+ $("blueBatchDouble").value=$("blueDouble").value;
+}
+function addBatch(){
+ let added=0;
+ ["gold","purple","blue"].forEach(color=>{
+  let qty=Math.floor(Number($(color+"Qty").value)||0);
+  if(qty>0){
+   batches.push({
+    id:Date.now()+Math.random(),
+    color,
+    qty,
+    dbl:Number($(color+"BatchDouble").value)
+   });
+   added+=qty;
+  }
+ });
+ if(!added){alert("請至少輸入一種顏色的寶寶數量！");return}
+ ["goldQty","purpleQty","blueQty"].forEach(id=>$(id).value=0);
  render();save();
 }
-function value(b){
- let base={gold:4,purple:3,blue:2}[b.color];
- return base*(b.dbl?2:1);
+function batchValue(b){
+ return b.qty*colors[b.color].base*(b.dbl?2:1);
+}
+function removeBatch(id){
+ batches=batches.filter(b=>b.id!==id);
+ render();save();
 }
 function render(){
- let names={gold:"金色",purple:"紫色",blue:"藍色"};
- let html="<table><tr><th>顏色</th><th>數量</th><th>雙倍</th><th>操作</th></tr>";
- babies.forEach((b,i)=>{
- html+=`<tr><td>${names[b.color]}</td><td>${b.qty}</td><td>${b.dbl?"是":"否"}</td><td><button class="danger" onclick="removeBaby(${i})">刪除</button></td></tr>`;
+ let html="<table><tr><th>顏色</th><th>數量</th><th>雙倍</th><th>預估幣值</th><th></th></tr>";
+ batches.forEach(b=>{
+  html+=`<tr><td>${colors[b.color].name}</td><td>${b.qty}</td><td>${b.dbl?"是":"否"}</td><td>${batchValue(b).toLocaleString()}</td><td><button class="danger" onclick="removeBatch(${b.id})">刪除</button></td></tr>`;
  });
  html+="</table>";
- $("inventory").innerHTML=babies.length?html:"<p class='small'>目前沒有寶寶庫存。</p>";
- let count=babies.reduce((s,b)=>s+b.qty,0);
- let coins=babies.reduce((s,b)=>s+b.qty*value(b),0);
- $("inventoryTotal").textContent="庫存 "+count+" 隻，依目前設定派遣可得 "+coins.toLocaleString()+" 幣";
+ $("inventory").innerHTML=batches.length?html:"<p class='small'>目前沒有寶寶庫存，新增一批寶寶就會顯示在這裡。</p>";
+ let count=batches.reduce((s,b)=>s+b.qty,0);
+ let coins=batches.reduce((s,b)=>s+batchValue(b),0);
+ $("inventoryTotal").textContent="目前共有 "+count+" 隻寶寶，預估派遣收益 "+coins.toLocaleString()+" 幣";
 }
-function removeBaby(i){babies.splice(i,1);render();save()}
 function dispatchAll(){
- let coins=babies.reduce((s,b)=>s+b.qty*value(b),0);
- let count=babies.reduce((s,b)=>s+b.qty,0);
- $("dispatchResult").textContent="派遣 "+count+" 隻，預估取得 "+coins.toLocaleString()+" 幣。";
- $("currentCoins").value=Number($("currentCoins").value)+coins;
- babies=[];render();goals();save();
+ if(!batches.length){alert("目前沒有寶寶可以派遣。");return}
+ let coins=batches.reduce((s,b)=>s+batchValue(b),0);
+ let count=batches.reduce((s,b)=>s+b.qty,0);
+ if(!confirm("確認已完成全部 "+count+" 隻寶寶的派遣及收穫？預估增加 "+coins.toLocaleString()+" 幣。"))return;
+ $("currentCoins").value=(Number($("currentCoins").value)||0)+coins;
+ batches=[];
+ $("dispatchResult").textContent="已記錄派遣 "+count+" 隻，增加 "+coins.toLocaleString()+" 幣。";
+ render();goals();save();
 }
 function exportData(){
  save();
- let blob=new Blob([localStorage.getItem("gardenPlanner")],{type:"application/json"});
- let a=document.createElement("a");a.href=URL.createObjectURL(blob);
- a.download="我的花園世界備份.json";a.click();URL.revokeObjectURL(a.href);
+ let data=localStorage.getItem("gardenPlannerV2");
+ let blob=new Blob([data],{type:"application/json"});
+ let a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);
+ a.download="我的花園世界備份.json";
+ a.click();URL.revokeObjectURL(a.href);
 }
 function importData(e){
  let file=e.target.files[0];if(!file)return;
  let reader=new FileReader();
  reader.onload=()=>{
- try{let d=JSON.parse(reader.result);localStorage.setItem("gardenPlanner",JSON.stringify(d));load();alert("匯入成功！")}
- catch(err){alert("檔案格式不正確")}
- };reader.readAsText(file);
+  try{
+   let d=JSON.parse(reader.result);
+   if(!d.values||!Array.isArray(d.batches))throw new Error();
+   localStorage.setItem("gardenPlannerV2",JSON.stringify(d));
+   load();goals();daily();alert("匯入成功！");
+  }catch(err){alert("檔案格式不正確，無法匯入。")}
+ };
+ reader.readAsText(file);
 }
 function resetData(){
- if(confirm("確定清除所有資料？此操作無法復原。")){
- localStorage.removeItem("gardenPlanner");localStorage.removeItem("gardenBabies");
- babies=[];location.reload();
- }
+ if(!confirm("確定清除所有資料？此操作無法復原。"))return;
+ localStorage.removeItem("gardenPlannerV2");
+ localStorage.removeItem("gardenPlanner");
+ localStorage.removeItem("gardenBabies");
+ location.reload();
 }
-["goal9999","goal5999","goal3999","otherGoal","currentCoins","shopDays"].forEach(id=>$(id).addEventListener("input",()=>{goals();save()}));
-["flowerStatus","catchCount"].forEach(id=>$(id).addEventListener("change",()=>{daily();save()}));
-["week","goldDouble","purpleDouble","blueDouble"].forEach(id=>$(id).addEventListener("change",()=>{
- let w=Number($("week").value);
- if(w===1){$("goldDouble").value=0;$("purpleDouble").value=1;$("blueDouble").value=0}
- if(w===2||w===3){$("goldDouble").value=1;$("purpleDouble").value=1;$("blueDouble").value=1}
- if(w===4||w===5){$("goldDouble").value=0;$("purpleDouble").value=1;$("blueDouble").value=1}
- if(w===0){$("goldDouble").value=0;$("purpleDouble").value=0;$("blueDouble").value=0}
- save();
-}));
+["goal9999","goal5999","goal3999","otherGoal","currentCoins","shopDays"].forEach(id=>{
+ $(id).addEventListener("input",()=>{goals();save()});
+});
+["flowerStatus","catchCount"].forEach(id=>{
+ $(id).addEventListener("change",()=>{daily();save()});
+});
+$("week").addEventListener("change",()=>{
+ setWeekDefaults();syncBatchDefaults();
+});
+["goldDouble","purpleDouble","blueDouble"].forEach(id=>{
+ $(id).addEventListener("change",()=>{syncBatchDefaults();save()});
+});
 load();goals();daily();
 </script>
 </body>
