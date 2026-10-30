@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的花園世界｜花靈計算器</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f8f5fa;color:#40394a;font-family:Arial,"Noto Sans TC",sans-serif}
+header{background:#9575b8;color:white;padding:25px 18px;text-align:center}
+header h1{margin:0;font-size:24px}
+header p{margin:8px 0 0;font-size:13px}
+main{max-width:760px;margin:auto;padding:16px}
+section{background:white;border-radius:15px;padding:18px;margin:14px 0;box-shadow:0 2px 9px #0000000b}
+h2{font-size:18px;margin:0 0 14px;color:#79569b}
+h3{font-size:15px;margin:14px 0 8px}
+label{display:block;font-size:13px;margin:10px 0 5px}
+input,select{width:100%;padding:11px;border:1px solid #ddd2e8;border-radius:9px;font-size:15px;background:white;color:#40394a}
+button{border:0;border-radius:9px;padding:11px 15px;background:#9575b8;color:white;font-size:14px;cursor:pointer;margin-top:10px}
+button.secondary{background:#eee7f4;color:#674a82}
+button.danger{background:#f5e5e5;color:#9c4444}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:#f5eff9;padding:12px;border-radius:10px;text-align:center}
+.stat strong{display:block;font-size:22px;color:#79569b;margin-top:5px}
+.small{font-size:12px;color:#877e8f;line-height:1.6}
+.result{font-size:16px;font-weight:bold;margin-top:12px;color:#79569b}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+td,th{padding:9px 5px;border-bottom:1px solid #eee;text-align:left}
+th{color:#79569b}
+.tag{display:inline-block;background:#f0e9f5;border-radius:20px;padding:3px 8px;font-size:12px}
+footer{text-align:center;color:#999;font-size:12px;padding:20px}
+@media(max-width:480px){.row{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}table{font-size:12px}}
+</style>
+</head>
+<body>
+<header>
+<h1>🌸 我的花園世界</h1>
+<p>花靈收藏・寶寶庫存・派遣收益計算器</p>
+</header>
+<main>
+
+<section>
+<h2>🌷 商店收藏目標</h2>
+<div class="row">
+<div>
+<label>9999 幣花朵數量</label>
+<input id="goal9999" type="number" min="0" value="1">
+</div>
+<div>
+<label>5999 幣花朵數量</label>
+<input id="goal5999" type="number" min="0" value="2">
+</div>
+<div>
+<label>3999 幣花朵數量</label>
+<input id="goal3999" type="number" min="0" value="3">
+</div>
+<div>
+<label>其他商品所需幣值</label>
+<input id="otherGoal" type="number" min="0" value="0">
+</div>
+</div>
+<div class="result" id="goalResult">目標總幣值：41,993</div>
+<label>目前已有幣值</label>
+<input id="currentCoins" type="number" min="0" value="0">
+<label>距離商店刷新還有幾天</label>
+<input id="shopDays" type="number" min="0" value="180">
+<div class="result" id="remainingResult"></div>
+</section>
+
+<section>
+<h2>🐣 每日刷寶寶設定</h2>
+<div class="row">
+<div>
+<label>花靈購買狀態</label>
+<select id="flowerStatus">
+<option value="0">沒有購買花靈</option>
+<option value="18">已購買花靈（18 隻／日）</option>
+<option value="30">花靈＋密令（30 隻／日）</option>
+</select>
+</div>
+<div>
+<label>每天抓別人的寶寶</label>
+<select id="catchCount">
+<option value="0">0 隻</option><option value="1">1 隻</option>
+<option value="2">2 隻</option><option value="3">3 隻</option>
+<option value="4" selected>4 隻</option>
+</select>
+</div>
+</div>
+<p class="small">抓別人的寶寶每日最多 4 隻；抓到的寶寶也會依輔花顏色計算收益。</p>
+<div class="cards">
+<div class="stat">每日可刷<strong id="dailyCount">0</strong></div>
+<div class="stat">每日最多可抓<strong id="dailyCatch">4</strong></div>
+<div class="stat">每日總額度<strong id="dailyTotal">4</strong></div>
+</div>
+</section>
+
+<section>
+<h2>✨ 雙倍活動設定</h2>
+<label>目前活動週次</label>
+<select id="week">
+<option value="1">第 1 週：紫色雙倍</option>
+<option value="2">第 2 週：金／紫／藍色雙倍</option>
+<option value="3">第 3 週：金／紫／藍色雙倍</option>
+<option value="4">第 4 週：紫／藍色雙倍</option>
+<option value="5">第 5 週：紫／藍色雙倍（新花靈週期）</option>
+<option value="0">活動結束：沒有雙倍</option>
+</select>
+<p class="small">此處先依照每週官方活動規則設定。實際指定花朵仍需依當輪公告確認。</p>
+<div class="row">
+<div>
+<label>金色輔花是否為本週雙倍</label>
+<select id="goldDouble"><option value="0">否</option><option value="1">是</option></select>
+</div>
+<div>
+<label>紫色輔花是否為本週雙倍</label>
+<select id="purpleDouble"><option value="0">否</option><option value="1">是</option></select>
+</div>
+<div>
+<label>藍色輔花是否為本週雙倍</label>
+<select id="blueDouble"><option value="0">否</option><option value="1">是</option></select>
+</div>
+</div>
+<p class="small">第五週可能同時遇到新舊花靈活動，請依實際公告勾選指定輔花。</p>
+</section>
+
+<section>
+<h2>📦 寶寶庫存</h2>
+<p class="small">新增寶寶時，選擇顏色及目前派遣時是否符合雙倍資格。寶寶可以先存著，等適合的活動週再派遣。</p>
+<div class="row">
+<div>
+<label>輔花顏色</label>
+<select id="babyColor">
+<option value="gold">金色（4 幣）</option>
+<option value="purple">紫色（3 幣）</option>
+<option value="blue">藍色（2 幣）</option>
+</select>
+</div>
+<div>
+<label>寶寶數量</label>
+<input id="babyQty" type="number" min="1" value="1">
+</div>
+</div>
+<label>派遣時是否符合雙倍資格？</label>
+<select id="babyDouble">
+<option value="0">否，正常幣值</option>
+<option value="1">是，符合本週雙倍</option>
+</select>
+<button onclick="addBaby()">＋ 加入寶寶庫存</button>
+<div id="inventory"></div>
+<div class="result" id="inventoryTotal"></div>
+</section>
+
+<section>
+<h2>🚀 派遣收益試算</h2>
+<div class="cards">
+<div class="stat">金色<strong>4 幣</strong></div>
+<div class="stat">紫色<strong>3 幣</strong></div>
+<div class="stat">藍色<strong>2 幣</strong></div>
+</div>
+<p class="small">符合雙倍資格時，金色 8 幣、紫色 6 幣、藍色 4 幣。雙倍寶寶必須在星期日 23:59 前完成收穫。</p>
+<button onclick="dispatchAll()">計算並派遣全部庫存</button>
+<div class="result" id="dispatchResult">尚未派遣</div>
+</section>
+
+<section>
+<h2>💾 資料保存</h2>
+<p class="small">資料會自動儲存在目前裝置的瀏覽器中。更換手機或清除瀏覽器資料可能導致紀錄消失。</p>
+<button class="secondary" onclick="exportData()">匯出備份</button>
+<button class="secondary" onclick="document.getElementById('importFile').click()">匯入備份</button>
+<input id="importFile" type="file" accept=".json" style="display:none" onchange="importData(event)">
+<button class="danger" onclick="resetData()">清除所有資料</button>
+</section>
+
+</main>
+<footer>我的花園世界 🌸 第一版試用版</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+let babies=JSON.parse(localStorage.getItem("gardenBabies")||"[]");
+
+function save(){
+ const ids=["goal9999","goal5999","goal3999","otherGoal","currentCoins","shopDays","flowerStatus","catchCount","week","goldDouble","purpleDouble","blueDouble"];
+ let data={babies,values:{}};
+ ids.forEach(id=>data.values[id]=$(id).value);
+ localStorage.setItem("gardenPlanner",JSON.stringify(data));
+ localStorage.setItem("gardenBabies",JSON.stringify(babies));
+}
+function load(){
+ let data=JSON.parse(localStorage.getItem("gardenPlanner")||"null");
+ if(data&&data.values)Object.keys(data.values).forEach(id=>{if($(id))$(id).value=data.values[id]});
+ babies=data?.babies||JSON.parse(localStorage.getItem("gardenBabies")||"[]");
+ render();
+}
+function goals(){
+ let total=Number($("goal9999").value)*9999+
+ Number($("goal5999").value)*5999+
+ Number($("goal3999").value)*3999+
+ Number($("otherGoal").value);
+ $("goalResult").textContent="目標總幣值："+total.toLocaleString()+" 幣";
+ let remain=Math.max(0,total-Number($("currentCoins").value));
+ let days=Number($("shopDays").value);
+ $("remainingResult").textContent="還差 "+remain.toLocaleString()+" 幣；每天平均需取得 "+
+ (days>0?(remain/days).toFixed(1):"—")+" 幣";
+}
+function daily(){
+ let n=Number($("flowerStatus").value),c=Number($("catchCount").value);
+ $("dailyCount").textContent=n;
+ $("dailyCatch").textContent=c;
+ $("dailyTotal").textContent=n+c;
+}
+function addBaby(){
+ let color=$("babyColor").value,qty=Math.max(1,Number($("babyQty").value));
+ let dbl=Number($("babyDouble").value);
+ babies.push({color,qty,dbl});
+ render();save();
+}
+function value(b){
+ let base={gold:4,purple:3,blue:2}[b.color];
+ return base*(b.dbl?2:1);
+}
+function render(){
+ let names={gold:"金色",purple:"紫色",blue:"藍色"};
+ let html="<table><tr><th>顏色</th><th>數量</th><th>雙倍</th><th>操作</th></tr>";
+ babies.forEach((b,i)=>{
+ html+=`<tr><td>${names[b.color]}</td><td>${b.qty}</td><td>${b.dbl?"是":"否"}</td><td><button class="danger" onclick="removeBaby(${i})">刪除</button></td></tr>`;
+ });
+ html+="</table>";
+ $("inventory").innerHTML=babies.length?html:"<p class='small'>目前沒有寶寶庫存。</p>";
+ let count=babies.reduce((s,b)=>s+b.qty,0);
+ let coins=babies.reduce((s,b)=>s+b.qty*value(b),0);
+ $("inventoryTotal").textContent="庫存 "+count+" 隻，依目前設定派遣可得 "+coins.toLocaleString()+" 幣";
+}
+function removeBaby(i){babies.splice(i,1);render();save()}
+function dispatchAll(){
+ let coins=babies.reduce((s,b)=>s+b.qty*value(b),0);
+ let count=babies.reduce((s,b)=>s+b.qty,0);
+ $("dispatchResult").textContent="派遣 "+count+" 隻，預估取得 "+coins.toLocaleString()+" 幣。";
+ $("currentCoins").value=Number($("currentCoins").value)+coins;
+ babies=[];render();goals();save();
+}
+function exportData(){
+ save();
+ let blob=new Blob([localStorage.getItem("gardenPlanner")],{type:"application/json"});
+ let a=document.createElement("a");a.href=URL.createObjectURL(blob);
+ a.download="我的花園世界備份.json";a.click();URL.revokeObjectURL(a.href);
+}
+function importData(e){
+ let file=e.target.files[0];if(!file)return;
+ let reader=new FileReader();
+ reader.onload=()=>{
+ try{let d=JSON.parse(reader.result);localStorage.setItem("gardenPlanner",JSON.stringify(d));load();alert("匯入成功！")}
+ catch(err){alert("檔案格式不正確")}
+ };reader.readAsText(file);
+}
+function resetData(){
+ if(confirm("確定清除所有資料？此操作無法復原。")){
+ localStorage.removeItem("gardenPlanner");localStorage.removeItem("gardenBabies");
+ babies=[];location.reload();
+ }
+}
+["goal9999","goal5999","goal3999","otherGoal","currentCoins","shopDays"].forEach(id=>$(id).addEventListener("input",()=>{goals();save()}));
+["flowerStatus","catchCount"].forEach(id=>$(id).addEventListener("change",()=>{daily();save()}));
+["week","goldDouble","purpleDouble","blueDouble"].forEach(id=>$(id).addEventListener("change",()=>{
+ let w=Number($("week").value);
+ if(w===1){$("goldDouble").value=0;$("purpleDouble").value=1;$("blueDouble").value=0}
+ if(w===2||w===3){$("goldDouble").value=1;$("purpleDouble").value=1;$("blueDouble").value=1}
+ if(w===4||w===5){$("goldDouble").value=0;$("purpleDouble").value=1;$("blueDouble").value=1}
+ if(w===0){$("goldDouble").value=0;$("purpleDouble").value=0;$("blueDouble").value=0}
+ save();
+}));
+load();goals();daily();
+</script>
+</body>
+</html>
