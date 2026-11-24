@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -95,6 +94,33 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 </section>
 
 <section>
+<h2>🔮 未來抓取寶寶收益預估</h2>
+<p class="small">從明天開始計算，到商店刷新前的最後一天為止，每天預估抓取 4 隻。商店剩餘天數請填遊戲畫面顯示的整數天數；例如 55 天，就計算 55 天、共 220 隻。</p>
+<label>目前花靈活動第幾週</label>
+<select id="activityWeek">
+<option value="1">第 1 週</option>
+<option value="2">第 2 週</option>
+<option value="3">第 3 週</option>
+<option value="4">第 4 週</option>
+</select>
+<p class="small">這裡的週次由你依遊戲活動自行選擇，不會依現實日期自動判斷。系統只讀取裝置日期的星期幾，遇到星期一才自動切換下一週；第 4 週後回到第 1 週。</p>
+<label>預估情境</label>
+<select id="forecastMode">
+<option value="double">全部抓雙倍寶寶</option>
+<option value="expired">全部抓過期寶寶</option>
+</select>
+<label style="display:flex;align-items:center;gap:8px"><input id="includeInventory" type="checkbox" style="width:auto"> 把目前已有的寶寶庫存加入預估</label>
+<p class="small">勾選後，會依目前倉庫中已登錄的雙倍／過期數量與顏色，沿用上方倉庫的收益算法一併計算；不會修改倉庫資料。</p>
+<div class="three">
+<div class="stat">未來可抓數量<strong id="forecastCount">0</strong></div>
+<div class="stat">未來預估收益<strong id="forecastCoins">0</strong></div>
+<div class="stat">預估總幣值<strong id="forecastTotal">0</strong></div>
+</div>
+<div class="result" id="forecastResult"></div>
+<div id="forecastBreakdown" class="small"></div>
+</section>
+
+<section>
 <h2>📦 我的寶寶倉庫</h2>
 <div id="inventorySummary"></div>
 <div class="three">
@@ -124,139 +150,490 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <button class="danger" onclick="resetData()">清除所有資料</button>
 </section>
 </main>
-<footer>我的花園世界 🌸 第六版</footer>
+<footer>我的花園世界 🌸 第七版</footer>
+
 <script>
 const $=id=>document.getElementById(id);
-function changeGoal(id,delta){$(id).value=Math.max(0,Math.floor(Number($(id).value)||0)+delta);goals();save();}
-const colors={gold:{name:"金色",base:4},purple:{name:"紫色",base:3},blue:{name:"藍色",base:2}};
-let inventory={gold:{double:0,expired:0},purple:{double:0,expired:0},blue:{double:0,expired:0}};
+
+function changeGoal(id,delta){
+ $(id).value=Math.max(0,Math.floor(Number($(id).value)||0)+delta);
+ goals();
+ save();
+}
+
+const colors={
+ gold:{name:"金色",base:4},
+ purple:{name:"紫色",base:3},
+ blue:{name:"藍色",base:2}
+};
+
+let inventory={
+ gold:{double:0,expired:0},
+ purple:{double:0,expired:0},
+ blue:{double:0,expired:0}
+};
+
 let dailyCatchDate="",dailyCatchCount=0;
 
-function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
-function refreshCatchDay(){if(dailyCatchDate!==today()){dailyCatchDate=today();dailyCatchCount=0}}
-function num(id){return Math.max(0,Math.floor(Number($(id).value)||0))}
-function save(){
- const ids=["goal9999","goal5999","goal3999","otherGoal","currentCoins","shopDays","flowerStatus"];
- const values={};ids.forEach(id=>values[id]=$(id).value);
- localStorage.setItem("gardenPlannerV5",JSON.stringify({values,inventory,dailyCatchDate,dailyCatchCount}));
+function today(){
+ const d=new Date();
+ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 }
+
+function refreshCatchDay(){
+ if(dailyCatchDate!==today()){
+  dailyCatchDate=today();
+  dailyCatchCount=0;
+ }
+}
+
+function num(id){
+ return Math.max(0,Math.floor(Number($(id).value)||0));
+}
+
+function save(){
+ const ids=[
+  "goal9999","goal5999","goal3999","otherGoal",
+  "currentCoins","shopDays","flowerStatus",
+  "activityWeek","forecastMode"
+ ];
+ const values={};
+ ids.forEach(id=>values[id]=$(id).value);
+ values.includeInventory=$("includeInventory").checked;
+
+ localStorage.setItem("gardenPlannerV5",JSON.stringify({
+  values,
+  inventory,
+  dailyCatchDate,
+  dailyCatchCount
+ }));
+}
+
 function legacyInventory(batches){
- const out={gold:{double:0,expired:0},purple:{double:0,expired:0},blue:{double:0,expired:0}};
+ const out={
+  gold:{double:0,expired:0},
+  purple:{double:0,expired:0},
+  blue:{double:0,expired:0}
+ };
+
  (batches||[]).forEach(b=>{
   if(!out[b.color])return;
   const q=Math.max(0,Number(b.qty)||0);
-  if(b.dbl)out[b.color].double+=q;else out[b.color].expired+=q;
+  if(b.dbl)out[b.color].double+=q;
+  else out[b.color].expired+=q;
  });
+
  return out;
 }
+
 function load(){
  let d=JSON.parse(localStorage.getItem("gardenPlannerV5")||"null");
+
  if(d){
-  Object.keys(d.values||{}).forEach(id=>{if($(id))$(id).value=d.values[id]});
+  Object.keys(d.values||{}).forEach(id=>{
+   if($(id) && id!=="includeInventory")$(id).value=d.values[id];
+  });
+
+  $("includeInventory").checked=!!d.values?.includeInventory;
+
   if(d.inventory)inventory=normalizeInventory(d.inventory);
-  dailyCatchDate=d.dailyCatchDate||today();dailyCatchCount=Number(d.dailyCatchCount)||0;
+
+  dailyCatchDate=d.dailyCatchDate||today();
+  dailyCatchCount=Number(d.dailyCatchCount)||0;
+
  }else{
   let old=JSON.parse(localStorage.getItem("gardenPlannerV4")||"null");
+
   if(!old)old=JSON.parse(localStorage.getItem("gardenPlannerV3")||"null");
+
   if(old){
-   Object.keys(old.values||{}).forEach(id=>{if($(id))$(id).value=old.values[id]});
-   inventory=legacyInventory([...(old.selfBatches||old.batches||[]),...(old.caughtBatches||[])]);
-   dailyCatchDate=old.dailyCatchDate||today();dailyCatchCount=Number(old.dailyCatchCount)||0;
+   Object.keys(old.values||{}).forEach(id=>{
+    if($(id))$(id).value=old.values[id];
+   });
+
+   inventory=legacyInventory([
+    ...(old.selfBatches||old.batches||[]),
+    ...(old.caughtBatches||[])
+   ]);
+
+   dailyCatchDate=old.dailyCatchDate||today();
+   dailyCatchCount=Number(old.dailyCatchCount)||0;
+
   }else{
    let prev=JSON.parse(localStorage.getItem("gardenPlannerV2")||"null");
-   if(prev){Object.keys(prev.values||{}).forEach(id=>{if($(id))$(id).value=prev.values[id]});inventory=legacyInventory(prev.batches||[])}
-   else{
+
+   if(prev){
+    Object.keys(prev.values||{}).forEach(id=>{
+     if($(id))$(id).value=prev.values[id];
+    });
+
+    inventory=legacyInventory(prev.batches||[]);
+
+   }else{
     let first=JSON.parse(localStorage.getItem("gardenPlanner")||"null");
-    if(first?.values)Object.keys(first.values).forEach(id=>{if($(id))$(id).value=first.values[id]});
+
+    if(first?.values){
+     Object.keys(first.values).forEach(id=>{
+      if($(id))$(id).value=first.values[id];
+     });
+    }
+
     const babies=JSON.parse(localStorage.getItem("gardenBabies")||"[]");
-    inventory=legacyInventory(babies.map(b=>({color:b.color,qty:b.qty,dbl:b.dbl})));
+
+    inventory=legacyInventory(
+     babies.map(b=>({
+      color:b.color,
+      qty:b.qty,
+      dbl:b.dbl
+     }))
+    );
    }
-   dailyCatchDate=today();dailyCatchCount=0;
+
+   dailyCatchDate=today();
+   dailyCatchCount=0;
   }
  }
- refreshCatchDay();writeInputs();render();
+
+ refreshCatchDay();
+ writeInputs();
+ render();
 }
+
 function normalizeInventory(data){
- const out={gold:{double:0,expired:0},purple:{double:0,expired:0},blue:{double:0,expired:0}};
- Object.keys(colors).forEach(c=>{const x=data[c]||{};out[c].double=Number(x.double)||0;out[c].expired=(Number(x.expired)||0)+(Number(x.normal)||0)});
+ const out={
+  gold:{double:0,expired:0},
+  purple:{double:0,expired:0},
+  blue:{double:0,expired:0}
+ };
+
+ Object.keys(colors).forEach(c=>{
+  const x=data[c]||{};
+  out[c].double=Number(x.double)||0;
+  out[c].expired=(Number(x.expired)||0)+(Number(x.normal)||0);
+ });
+
  return out;
 }
+
 function writeInputs(){
  Object.keys(colors).forEach(c=>{
   $(c+"Double").value=inventory[c]?.double||0;
   $(c+"Expired").value=inventory[c]?.expired||0;
  });
 }
+
 function clearInventory(){
  if(!confirm("確定清除所有寶寶庫存？不會影響目前幣值及收藏目標。"))return;
- inventory={gold:{double:0,expired:0},purple:{double:0,expired:0},blue:{double:0,expired:0}};
- Object.keys(colors).forEach(c=>{$(c+"Double").value=0;$(c+"Expired").value=0});
- render();save();
+
+ inventory={
+  gold:{double:0,expired:0},
+  purple:{double:0,expired:0},
+  blue:{double:0,expired:0}
+ };
+
+ Object.keys(colors).forEach(c=>{
+  $(c+"Double").value=0;
+  $(c+"Expired").value=0;
+ });
+
+ render();
+ save();
 }
+
 function goals(){
- const total=num("goal9999")*9999+num("goal5999")*5999+num("goal3999")*3999+num("otherGoal");
- const current=num("currentCoins"),left=Math.max(0,total-current),days=num("shopDays");
+ const total=
+  num("goal9999")*9999+
+  num("goal5999")*5999+
+  num("goal3999")*3999+
+  num("otherGoal");
+
+ const current=num("currentCoins");
+ const left=Math.max(0,total-current);
+ const days=num("shopDays");
+
  $("goalResult").textContent="目標總幣值："+total.toLocaleString()+" 幣";
- $("remainingResult").textContent="還差 "+left.toLocaleString()+" 幣；每天平均需要 "+(days>0?(left/days).toFixed(1):"—")+" 幣";
- $("progressGoal").textContent=total.toLocaleString();$("progressCurrent").textContent=current.toLocaleString();$("progressLeft").textContent=left.toLocaleString();
- $("dailyNeed").textContent="依照剩餘天數，每天平均需取得 "+(days>0?(left/days).toFixed(1):"—")+" 幣";
+
+ $("remainingResult").textContent=
+  "還差 "+left.toLocaleString()+" 幣；每天平均需要 "+
+  (days>0?(left/days).toFixed(1):"—")+" 幣";
+
+ $("progressGoal").textContent=total.toLocaleString();
+ $("progressCurrent").textContent=current.toLocaleString();
+ $("progressLeft").textContent=left.toLocaleString();
+
+ $("dailyNeed").textContent=
+  "依照剩餘天數，每天平均需取得 "+
+  (days>0?(left/days).toFixed(1):"—")+" 幣";
 }
+
 function daily(){
- // 刷寶寶數量由購買狀態固定決定：未購買 0、花靈 18、花靈＋密令 30
  const status=Number($("flowerStatus").value);
  $("dailyCount").textContent=status;
 }
+
 function render(){
  let rows="<table><tr><th>顏色</th><th>雙倍</th><th>過期寶寶</th><th>預估收益</th></tr>";
+
  let count=0,active=0,expired=0;
+
  Object.keys(colors).forEach(c=>{
-  const x=inventory[c]||{double:0,expired:0},base=colors[c].base;
+  const x=inventory[c]||{double:0,expired:0};
+  const base=colors[c].base;
+
   const subtotal=x.double*base*2+x.expired*base;
-  count+=x.double+x.expired;active+=x.double*base*2;expired+=x.expired*base;
-  rows+=`<tr><td>${colors[c].name}</td><td>${x.double}</td><td>${x.expired}</td><td>${subtotal.toLocaleString()} 幣</td></tr>`;
+
+  count+=x.double+x.expired;
+  active+=x.double*base*2;
+  expired+=x.expired*base;
+
+  rows+=`<tr>
+   <td>${colors[c].name}</td>
+   <td>${x.double}</td>
+   <td>${x.expired}</td>
+   <td>${subtotal.toLocaleString()} 幣</td>
+  </tr>`;
  });
- rows+="</table>";$("inventorySummary").innerHTML=rows;
- $("allCount").textContent=count.toLocaleString();$("activeCoins").textContent=active.toLocaleString();$("expiredCoins").textContent=expired.toLocaleString();
- $("allTotal").textContent="目前全部寶寶共 "+count.toLocaleString()+" 隻，全部派遣預估可得 "+(active+expired).toLocaleString()+" 幣。";
- daily();goals();
+
+ rows+="</table>";
+
+ $("inventorySummary").innerHTML=rows;
+
+ $("allCount").textContent=count.toLocaleString();
+ $("activeCoins").textContent=active.toLocaleString();
+ $("expiredCoins").textContent=expired.toLocaleString();
+
+ $("allTotal").textContent=
+  "目前全部寶寶共 "+count.toLocaleString()+
+  " 隻，全部派遣預估可得 "+(active+expired).toLocaleString()+" 幣。";
+
+ daily();
+ goals();
+ forecast();
 }
+
+function forecast(){
+ const days=num("shopDays");
+ const count=days*4;
+ const mode=$("forecastMode").value;
+
+ let week=Number($("activityWeek").value)||1;
+
+ const d=new Date();
+ d.setHours(12,0,0,0);
+
+ let futureCoins=0;
+ let weekRows={1:0,2:0,3:0,4:0};
+
+ for(let i=1;i<=days;i++){
+  d.setDate(d.getDate()+1);
+
+  if(d.getDay()===1){
+   week=week%4+1;
+  }
+
+  const perBaby=
+   mode==="expired"
+    ?4
+    :(week<=2?8:6);
+
+  const earned=4*perBaby;
+
+  futureCoins+=earned;
+  weekRows[week]+=earned;
+ }
+
+ let inventoryCoins=0;
+ let inventoryCount=0;
+
+ if($("includeInventory").checked){
+  Object.keys(colors).forEach(c=>{
+   const x=inventory[c]||{double:0,expired:0};
+
+   inventoryCount+=x.double+x.expired;
+
+   inventoryCoins+=
+    x.double*colors[c].base*2+
+    x.expired*colors[c].base;
+  });
+ }
+
+ const current=num("currentCoins");
+
+ const goal=
+  num("goal9999")*9999+
+  num("goal5999")*5999+
+  num("goal3999")*3999+
+  num("otherGoal");
+
+ const total=current+futureCoins+inventoryCoins;
+ const left=Math.max(0,goal-total);
+
+ $("forecastCount").textContent=count.toLocaleString();
+ $("forecastCoins").textContent=futureCoins.toLocaleString()+" 幣";
+ $("forecastTotal").textContent=total.toLocaleString()+" 幣";
+
+ $("forecastResult").textContent=
+  left===0
+   ?"依此情境預估，可以達成收藏目標！"
+   :"依此情境預估，距離收藏目標還差 "+left.toLocaleString()+" 幣。";
+
+ let lines=[];
+
+ if(mode==="double"){
+  [1,2,3,4].forEach(w=>{
+   if(weekRows[w]){
+    lines.push(
+     "活動第"+w+"週："+weekRows[w].toLocaleString()+" 幣"
+    );
+   }
+  });
+
+  $("forecastBreakdown").textContent=
+   "雙倍情境假設：第 1、2 週每隻以金色雙倍 8 幣計算；第 3、4 週每隻以紫色雙倍 6 幣計算。"+
+   (lines.length?"\n"+lines.join("；"):"");
+
+ }else{
+  $("forecastBreakdown").textContent=
+   "過期情境假設：未來抓到的寶寶全部先囤積，最後以金色一般收益 4 幣／隻計算。";
+ }
+
+ if($("includeInventory").checked){
+  $("forecastBreakdown").textContent+=
+   "\n目前庫存另計："+inventoryCount.toLocaleString()+
+   " 隻、"+inventoryCoins.toLocaleString()+" 幣。";
+ }
+}
+
 function exportData(){
- save();const data=localStorage.getItem("gardenPlannerV5");
- const blob=new Blob([data],{type:"application/json"}),a=document.createElement("a");
- a.href=URL.createObjectURL(blob);a.download="我的花園世界備份.json";a.click();URL.revokeObjectURL(a.href);
+ save();
+
+ const data=localStorage.getItem("gardenPlannerV5");
+
+ const blob=new Blob([data],{type:"application/json"});
+ const a=document.createElement("a");
+
+ a.href=URL.createObjectURL(blob);
+ a.download="我的花園世界備份.json";
+ a.click();
+
+ URL.revokeObjectURL(a.href);
 }
+
 function importData(e){
- const file=e.target.files[0];if(!file)return;
+ const file=e.target.files[0];
+ if(!file)return;
+
  const reader=new FileReader();
- reader.onload=()=>{try{
-  const d=JSON.parse(reader.result);if(!d.values)throw new Error();
-  Object.keys(d.values).forEach(id=>{if($(id))$(id).value=d.values[id]});
-  if(d.inventory)inventory=normalizeInventory(d.inventory);
-  else inventory=legacyInventory([...(d.selfBatches||d.batches||[]),...(d.caughtBatches||[])]);
-  dailyCatchDate=d.dailyCatchDate||today();dailyCatchCount=Number(d.dailyCatchCount)||0;
-  refreshCatchDay();writeInputs();render();save();alert("匯入成功！");
- }catch(err){alert("檔案格式不正確，無法匯入。")}};
- reader.readAsText(file);e.target.value="";
+
+ reader.onload=()=>{
+  try{
+   const d=JSON.parse(reader.result);
+
+   if(!d.values)throw new Error();
+
+   Object.keys(d.values).forEach(id=>{
+    if($(id) && id!=="includeInventory"){
+     $(id).value=d.values[id];
+    }
+   });
+
+   $("includeInventory").checked=!!d.values.includeInventory;
+
+   if(d.inventory){
+    inventory=normalizeInventory(d.inventory);
+   }else{
+    inventory=legacyInventory([
+     ...(d.selfBatches||d.batches||[]),
+     ...(d.caughtBatches||[])
+    ]);
+   }
+
+   dailyCatchDate=d.dailyCatchDate||today();
+   dailyCatchCount=Number(d.dailyCatchCount)||0;
+
+   refreshCatchDay();
+   writeInputs();
+   render();
+   save();
+
+   alert("匯入成功！");
+
+  }catch(err){
+   alert("檔案格式不正確，無法匯入。");
+  }
+ };
+
+ reader.readAsText(file);
+ e.target.value="";
 }
+
 function resetData(){
  if(!confirm("確定清除所有資料？此操作無法復原。"))return;
- ["gardenPlannerV5","gardenPlannerV4","gardenPlannerV3","gardenPlannerV2","gardenPlanner","gardenBabies"].forEach(k=>localStorage.removeItem(k));
+
+ [
+  "gardenPlannerV5",
+  "gardenPlannerV4",
+  "gardenPlannerV3",
+  "gardenPlannerV2",
+  "gardenPlanner",
+  "gardenBabies"
+ ].forEach(k=>localStorage.removeItem(k));
+
  location.reload();
 }
-["goal9999","goal5999","goal3999","otherGoal","currentCoins","shopDays"].forEach(id=>$(id).addEventListener("input",()=>{goals();save()}));
-$("flowerStatus").addEventListener("change",()=>{daily();save()});
+
+["goal9999","goal5999","goal3999","otherGoal","currentCoins","shopDays"]
+.forEach(id=>{
+ $(id).addEventListener("input",()=>{
+  goals();
+  save();
+ });
+});
+
+$("flowerStatus").addEventListener("change",()=>{
+ daily();
+ save();
+});
 
 // 寶寶數量輸入時，即時同步到倉庫並更新收益
-["goldDouble","goldExpired","purpleDouble","purpleExpired","blueDouble","blueExpired"]
-.forEach(id=>$(id).addEventListener("input",()=>{
- const next={};
- Object.keys(colors).forEach(c=>{
-  next[c]={double:num(c+"Double"),expired:num(c+"Expired")};
+[
+ "goldDouble","goldExpired",
+ "purpleDouble","purpleExpired",
+ "blueDouble","blueExpired"
+].forEach(id=>{
+ $(id).addEventListener("input",()=>{
+  const next={};
+
+  Object.keys(colors).forEach(c=>{
+   next[c]={
+    double:num(c+"Double"),
+    expired:num(c+"Expired")
+   };
+  });
+
+  inventory=next;
+  render();
+  save();
  });
- inventory=next;
- render();
- save();
-}));
+});
+
+[
+ "shopDays","currentCoins",
+ "goal9999","goal5999","goal3999","otherGoal",
+ "activityWeek","forecastMode","includeInventory"
+].forEach(id=>{
+ $(id).addEventListener("change",()=>{
+  forecast();
+  save();
+ });
+});
+
+[
+ "shopDays","currentCoins",
+ "goal9999","goal5999","goal3999","otherGoal"
+].forEach(id=>{
+ $(id).addEventListener("input",forecast);
+});
 
 load();
 </script>
