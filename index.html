@@ -60,7 +60,7 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <div><label>9999 幣花朵數量</label><div class="stepper"><button type="button" class="secondary" onclick="changeGoal('goal9999',-1)">−</button><input id="goal9999" type="number" min="0" max="1" step="1" value="1"><button type="button" class="secondary" onclick="changeGoal('goal9999',1)">＋</button></div></div>
 <div><label>5999 幣花朵數量</label><div class="stepper"><button type="button" class="secondary" onclick="changeGoal('goal5999',-1)">−</button><input id="goal5999" type="number" min="0" max="1" step="1" value="1"><button type="button" class="secondary" onclick="changeGoal('goal5999',1)">＋</button></div></div>
 <div><label>3999 幣花朵數量</label><div class="stepper"><button type="button" class="secondary" onclick="changeGoal('goal3999',-1)">−</button><input id="goal3999" type="number" min="0" max="3" step="1" value="3"><button type="button" class="secondary" onclick="changeGoal('goal3999',1)">＋</button></div></div>
-<div><label>999 幣花瓶數量</label><div class="stepper"><button type="button" class="secondary" onclick="changeGoal('goalVase999',-1)">−</button><input id="goalVase999" type="number" min="0" max="1" step="1" value="1"><button type="button" class="secondary" onclick="changeGoal('goalVase999',1)">＋</button></div></div>
+<div><label>999 幣花瓶數量</label><div class="stepper"><button type="button" class="secondary" onclick="changeGoal('goalVase999',-1)">−</button><input id="goalVase999" type="number" min="0" step="1" value="1"><button type="button" class="secondary" onclick="changeGoal('goalVase999',1)">＋</button></div></div>
 <div><label>其他收藏目標幣值（自行輸入）</label><input id="otherGoal" type="number" min="0" step="1" value="0"></div>
 </div>
 <div class="result" id="goalResult"></div>
@@ -110,8 +110,8 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <div class="stat">每日可刷<strong id="dailyCount">0</strong></div>
 <div>
 <div class="daily-options">
-<label><input id="dailyExpired" type="checkbox">刷過期花靈</label>
 <label><input id="dailyDouble" type="checkbox" checked>刷雙倍花靈</label>
+<label><input id="dailyExpired" type="checkbox">刷過期花靈</label>
 </div>
 <p class="small">兩種刷取方式只能擇一；<br>雙倍花靈第 1、2 週以金色計算，第 3、4 週以紫色計算。</p>
 </div>
@@ -121,12 +121,16 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 </section>
 
 <section>
-<h2>🔮 未來抓取寶寶收益預估</h2>
+<h2>🔮 未來抓寶寶設定</h2>
 <label>預估情境</label>
 <select id="forecastMode">
 <option value="double">全部抓雙倍寶寶</option>
 <option value="expired">全部抓過期寶寶</option>
 </select>
+</section>
+
+<section>
+<h2>🏆 最終收益預估</h2>
 <label style="display:flex;align-items:center;gap:8px"><input id="includeInventory" type="checkbox" style="width:auto"> 把目前已有的寶寶庫存加入預估</label>
 <div class="summary-line" id="forecastStats"></div>
 <div class="summary-boxes">
@@ -144,7 +148,7 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <button class="danger" onclick="resetData()">清除所有資料</button>
 </section>
 </main>
-<footer>我的花園世界 🌸 第十一版・版面調整</footer>
+<footer>我的花園世界 🌸 第十三版・收益預估調整</footer>
 <script>
 const $=id=>document.getElementById(id);
 function goalMax(id){return id==="goal9999"||id==="goal5999"||id==="goalVase999"?1:id==="goal3999"?3:Infinity;}
@@ -237,13 +241,15 @@ function daily(){
  const totalBabies=days*status;
  let week=Number($("activityWeek").value)||1;
  const d=new Date();d.setHours(12,0,0,0);
- let doubleCoins=0,expiredCoins=0;
+ let selectedCoins=0;
+ const dailyMode=$("dailyExpired").checked?"expired":"double";
  for(let i=1;i<=days;i++){
   d.setDate(d.getDate()+1);
   if(d.getDay()===1)week=week%4+1;
-  doubleCoins+=status*(week<=2?8:6);
-  expiredCoins+=status*4;
+  selectedCoins+=status*(dailyMode==="expired"?4:(week<=2?8:6));
  }
+ const doubleCoins=dailyMode==="double"?selectedCoins:0;
+ const expiredCoins=dailyMode==="expired"?selectedCoins:0;
  $("dailyStats").innerHTML="寶寶總數：<strong>"+totalBabies.toLocaleString()+" 隻</strong>｜雙倍收益：<strong>"+doubleCoins.toLocaleString()+" 幣</strong>｜過期收益：<strong>"+expiredCoins.toLocaleString()+" 幣</strong>";
 }
 function render(){
@@ -270,7 +276,6 @@ function forecast(){
   const perBaby=mode==="expired"?4:(week<=2?8:6);
   caughtCoins+=4*perBaby;
  }
- // 每日自有花靈刷出的寶寶，依目前選擇的過期／雙倍方式估算
  const dailyCount=Number($("flowerStatus").value)||0;
  const dailyMode=$("dailyExpired").checked?"expired":"double";
  let selfCoins=0;
@@ -299,7 +304,6 @@ function forecast(){
  $("forecastResult").textContent=left===0?"恭喜！可達成":"不可達成，再加油！！";
  daily();
 }
-
 function exportData(){
  save();const data=localStorage.getItem("gardenPlannerV5");
  const blob=new Blob([data],{type:"application/json"}),a=document.createElement("a");
@@ -327,7 +331,6 @@ function resetData(){
  ["gardenPlannerV5","gardenPlannerV4","gardenPlannerV3","gardenPlannerV2","gardenPlanner","gardenBabies"].forEach(k=>localStorage.removeItem(k));
  location.reload();
 }
-// 所有會影響預估的欄位都共用同一套即時更新流程
 function updateAll(){
  goals();
  save();
@@ -348,8 +351,6 @@ $("dailyDouble").addEventListener("change",()=>{
  else if(!$("dailyExpired").checked)$("dailyExpired").checked=true;
  updateAll();
 });
-
-// 寶寶數量輸入時，即時同步到倉庫並更新收益與達標結果
 ["goldDouble","goldExpired","purpleDouble","purpleExpired","blueDouble","blueExpired"]
 .forEach(id=>$(id).addEventListener("input",()=>{
  const next={};
