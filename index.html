@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -20,6 +19,7 @@ input,select{width:100%;padding:11px;border:1px solid #ddd2e8;border-radius:9px;
 button{border:0;border-radius:9px;padding:11px 15px;background:#9575b8;color:white;font-size:14px;cursor:pointer;margin-top:10px}
 .secondary{background:#eee7f4;color:#674a82}
 .danger{background:#f5e5e5;color:#9c4444}
+.purple-action{background:#9575b8;color:white}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .stepper{display:grid;grid-template-columns:42px 1fr 42px;gap:6px;align-items:center}
 .stepper button{margin:0;padding:10px 0;font-size:20px}
@@ -41,6 +41,8 @@ button{border:0;border-radius:9px;padding:11px 15px;background:#9575b8;color:whi
 .summary-box.full.result-success{background:#E3EFE6;border:1px solid #C9DDCE;color:#426B50}
 .summary-box{background:#f5eff9;padding:13px 10px;border-radius:10px;text-align:center;color:#79569b;font-weight:bold;line-height:1.6}
 .summary-box strong{display:block;font-size:21px;margin-top:4px}
+.summary-box.gap-muted{opacity:.58}
+.disclaimer{font-size:11px;font-weight:normal;color:#877e8f;line-height:1.6;margin:7px 0 0}
 .small{font-size:12px;color:#877e8f;line-height:1.7}
 .result{font-size:16px;font-weight:bold;margin-top:12px;color:#79569b;line-height:1.7}
 .color-card{background:#faf8fc;border:1px solid #eee5f4;border-radius:10px;padding:10px}
@@ -54,7 +56,7 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 </head>
 <body>
 <header>
-<h1>🌸 我的花園世界</h1>
+<h1>🌸 我的花園世界🌸</h1>
 <p>花靈收藏・寶寶倉庫・目標計算器</p>
 </header>
 <main>
@@ -70,6 +72,7 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <div class="result" id="goalResult"></div>
 <label>目前已有幣值</label><input id="currentCoins" type="number" min="0" value="0">
 <label>距離商店刷新還有幾天</label><input id="shopDays" type="number" min="0" value="180">
+<p class="small">例如：商店倒數 60 天 12 小時，請填寫「60」</p>
 <label>目前花靈活動第幾週</label>
 <select id="activityWeek">
 <option value="1">第 1 週</option><option value="2">第 2 週</option><option value="3">第 3 週</option><option value="4">第 4 週</option>
@@ -96,7 +99,7 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <label>過期寶寶數量</label><input id="blueExpired" type="number" min="0" step="1" value="0">
 </div>
 </div>
-<button class="danger" onclick="clearInventory()">清除寶寶庫存</button>
+<button class="purple-action" onclick="clearInventory()">清除寶寶庫存</button>
 <div id="inventorySummary"></div>
 <div class="summary-line" id="inventoryStats"></div>
 </section>
@@ -131,6 +134,7 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <option value="double">全部抓雙倍寶寶</option>
 <option value="expired">全部抓過期寶寶</option>
 </select>
+<p class="small">雙倍花靈第 1、2 週以金色計算，第 3、4 週以紫色計算。</p>
 <div class="summary-line" id="futureCatchStats"></div>
 </section>
 
@@ -142,7 +146,7 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <div class="summary-boxes">
 <div class="summary-box">預估總幣值<strong id="forecastTotal">0 幣</strong></div>
 <div class="summary-box">距離收藏目標<strong id="forecastGap">0 幣</strong></div>
-<div class="summary-box full">預估結果<strong id="forecastResult">尚未計算</strong></div>
+<div class="summary-box full">預估結果<strong id="forecastResult">尚未計算</strong><p class="disclaimer">本預估結果僅供參考，實際收益及遊戲內容請以遊戲內公告與實際情況為準。</p></div>
 </div>
 </section>
 
@@ -151,10 +155,10 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <button class="secondary" onclick="exportData()">匯出備份</button>
 <button class="secondary" onclick="$('importFile').click()">匯入備份</button>
 <input id="importFile" type="file" accept=".json" style="display:none" onchange="importData(event)">
-<button class="danger" onclick="resetData()">清除所有資料</button>
+<button class="purple-action" onclick="resetData()">清除所有資料</button>
 </section>
 </main>
-<footer>我的花園世界 🌸 第十六版・密令週期起點修正</footer>
+<footer>我的花園世界 🌸 第十八版・密令週期修正與介面微調</footer>
 <script>
 const $=id=>document.getElementById(id);
 function goalMax(id){return id==="goal9999"||id==="goal5999"||id==="goalVase999"?1:id==="goal3999"?3:Infinity;}
@@ -309,27 +313,28 @@ function forecast(){
  const current=num("currentCoins"),goal=num("goal9999")*9999+num("goal5999")*5999+num("goal3999")*3999+num("goalVase999")*999+num("otherGoal");
  const includeInventory=$("includeInventory").checked;
  const countedInventory=includeInventory?inventoryCoins:0;
-
- // 密令週期以每輪第 1 週星期一為起點；先扣除距離下一個週期起點的天數，再計算完整 28 天
+ // 密令以「下一輪第 1 週星期一」作為完整 28 天週期的起點；若目前正是第 1 週星期一，則從今天起算。
  const todayForSeal=new Date();
- const weekdayOffset=(8-todayForSeal.getDay())%7; // 星期一為 0，星期日為 6
+ const weekdayIndexFromMonday=(todayForSeal.getDay()+6)%7; // 星期一為 0，星期日為 6
  const weekForSeal=Number($("activityWeek").value)||1;
- const weeksUntilCycleStart=(1-weekForSeal+4)%4;
- const daysUntilCycleStart=weeksUntilCycleStart*7+weekdayOffset;
+ const elapsedInCycle=(weekForSeal-1)*7+weekdayIndexFromMonday;
+ const daysUntilCycleStart=elapsedInCycle===0?0:28-elapsedInCycle;
  const daysAvailableForSeal=Math.max(0,days-daysUntilCycleStart);
  const sealPeriods=Math.floor(daysAvailableForSeal/28);
  const sealRate=[20,30,380][[0,18,30].indexOf(dailyCount)]||20;
  const sealCoins=$("includeSeal").checked?sealPeriods*sealRate:0;
-
  const total=current+futureCoins+countedInventory+sealCoins,left=Math.max(0,goal-total);
  $("forecastStats").innerHTML="未來可刷／抓數量：<strong>"+totalFutureBabies.toLocaleString()+"隻</strong>（每日刷寶寶 "+(days*dailyCount).toLocaleString()+" 隻＋抓別人的寶寶 "+count.toLocaleString()+" 隻）｜未來密令收益：<strong>"+sealCoins.toLocaleString()+" 幣</strong>（"+($("includeSeal").checked?sealPeriods:0)+"期）";
  $("forecastTotal").textContent=total.toLocaleString()+" 幣";
  $("forecastGap").textContent=left.toLocaleString()+" 幣";
  const resultBox=$("forecastResult").parentElement;
+ const gapBox=$("forecastGap").parentElement;
  resultBox.classList.remove("result-fail","result-success");
+ gapBox.classList.remove("gap-muted");
  if(left===0){
   $("forecastResult").textContent="恭喜！可達成";
   resultBox.classList.add("result-success");
+  gapBox.classList.add("gap-muted");
  }else{
   $("forecastResult").textContent="不可達成，再加油！！";
   resultBox.classList.add("result-fail");
