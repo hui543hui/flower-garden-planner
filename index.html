@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -71,8 +72,9 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 </div>
 <div class="result" id="goalResult"></div>
 <label>目前已有幣值</label><input id="currentCoins" type="number" min="0" value="0">
-<label>距離商店刷新還有幾天</label><input id="shopDays" type="number" min="0" value="180">
-<p class="small">例如：商店倒數 60 天 12 小時，請填寫「60」</p>
+<label>距離商店刷新還有幾天</label>
+<p class="small" style="margin:0 0 6px">例如：商店倒數 60 天 12 小時，請填寫「60」</p>
+<input id="shopDays" type="number" min="0" value="180">
 <label>目前花靈活動第幾週</label>
 <select id="activityWeek">
 <option value="1">第 1 週</option><option value="2">第 2 週</option><option value="3">第 3 週</option><option value="4">第 4 週</option>
@@ -305,10 +307,11 @@ function forecast(){
  const catchDoubleCoins=mode==="double"?caughtCoins:0;
  const catchExpiredCoins=mode==="expired"?caughtCoins:0;
  $("futureCatchStats").innerHTML="寶寶總數：<strong>"+count.toLocaleString()+" 隻</strong>｜雙倍收益：<strong>"+catchDoubleCoins.toLocaleString()+" 幣</strong>｜過期收益：<strong>"+catchExpiredCoins.toLocaleString()+" 幣</strong>";
- let inventoryCoins=0;
+ let inventoryCoins=0,inventoryCount=0;
  Object.keys(colors).forEach(c=>{
   const x=inventory[c]||{double:0,expired:0};
   inventoryCoins+=x.double*colors[c].base*2+x.expired*colors[c].base;
+  inventoryCount+=x.double+x.expired;
  });
  const current=num("currentCoins"),goal=num("goal9999")*9999+num("goal5999")*5999+num("goal3999")*3999+num("goalVase999")*999+num("otherGoal");
  const includeInventory=$("includeInventory").checked;
@@ -324,7 +327,15 @@ function forecast(){
  const sealRate=[20,30,380][[0,18,30].indexOf(dailyCount)]||20;
  const sealCoins=$("includeSeal").checked?sealPeriods*sealRate:0;
  const total=current+futureCoins+countedInventory+sealCoins,left=Math.max(0,goal-total);
- $("forecastStats").innerHTML="未來可刷／抓數量：<strong>"+totalFutureBabies.toLocaleString()+"隻</strong>（每日刷寶寶 "+(days*dailyCount).toLocaleString()+" 隻＋抓別人的寶寶 "+count.toLocaleString()+" 隻）｜未來密令收益：<strong>"+sealCoins.toLocaleString()+" 幣</strong>（"+($("includeSeal").checked?sealPeriods:0)+"期）";
+ const forecastLines=[];
+ forecastLines.push("<div>未來可刷／抓數量：<strong>"+totalFutureBabies.toLocaleString()+" 隻</strong>（每日刷寶寶 "+(days*dailyCount).toLocaleString()+" 隻＋抓別人的寶寶 "+count.toLocaleString()+" 隻）｜總收益：<strong>"+futureCoins.toLocaleString()+" 幣</strong></div>");
+ if($("includeSeal").checked){
+  forecastLines.push("<div>未來密令收益：<strong>"+sealCoins.toLocaleString()+" 幣</strong>（"+sealPeriods+" 期）</div>");
+ }
+ if(includeInventory){
+  forecastLines.push("<div>庫存寶寶總數：<strong>"+inventoryCount.toLocaleString()+" 隻</strong>｜總收益：<strong>"+inventoryCoins.toLocaleString()+" 幣</strong></div>");
+ }
+ $("forecastStats").innerHTML=forecastLines.join("");
  $("forecastTotal").textContent=total.toLocaleString()+" 幣";
  $("forecastGap").textContent=left.toLocaleString()+" 幣";
  const resultBox=$("forecastResult").parentElement;
