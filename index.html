@@ -30,11 +30,15 @@ button{border:0;border-radius:9px;padding:11px 15px;background:#9575b8;color:whi
 .daily-options{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:12px 0 4px}
 .daily-options label{display:flex;align-items:center;gap:7px;margin:0;font-size:14px}
 .daily-options input{width:auto;margin:0}
+.option-check{display:flex;align-items:center;gap:8px;font-size:14px;margin:12px 0}
+.option-check input{width:auto;margin:0}
 .daily-summary{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
 .summary-line{font-size:14px;line-height:1.9;color:#5b4a68;margin-top:12px}
 .summary-line strong{color:#79569b}
 .summary-boxes{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
 .summary-box.full{grid-column:1 / -1}
+.summary-box.full.result-fail{background:#F5E5E2;border:1px solid #E8CBC5;color:#8F5148}
+.summary-box.full.result-success{background:#E3EFE6;border:1px solid #C9DDCE;color:#426B50}
 .summary-box{background:#f5eff9;padding:13px 10px;border-radius:10px;text-align:center;color:#79569b;font-weight:bold;line-height:1.6}
 .summary-box strong{display:block;font-size:21px;margin-top:4px}
 .small{font-size:12px;color:#877e8f;line-height:1.7}
@@ -60,7 +64,7 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <div><label>9999 幣花朵數量</label><div class="stepper"><button type="button" class="secondary" onclick="changeGoal('goal9999',-1)">−</button><input id="goal9999" type="number" min="0" max="1" step="1" value="1"><button type="button" class="secondary" onclick="changeGoal('goal9999',1)">＋</button></div></div>
 <div><label>5999 幣花朵數量</label><div class="stepper"><button type="button" class="secondary" onclick="changeGoal('goal5999',-1)">−</button><input id="goal5999" type="number" min="0" max="1" step="1" value="1"><button type="button" class="secondary" onclick="changeGoal('goal5999',1)">＋</button></div></div>
 <div><label>3999 幣花朵數量</label><div class="stepper"><button type="button" class="secondary" onclick="changeGoal('goal3999',-1)">−</button><input id="goal3999" type="number" min="0" max="3" step="1" value="3"><button type="button" class="secondary" onclick="changeGoal('goal3999',1)">＋</button></div></div>
-<div><label>999 幣花瓶數量</label><div class="stepper"><button type="button" class="secondary" onclick="changeGoal('goalVase999',-1)">−</button><input id="goalVase999" type="number" min="0" step="1" value="1"><button type="button" class="secondary" onclick="changeGoal('goalVase999',1)">＋</button></div></div>
+<div><label>999 幣花瓶數量</label><div class="stepper"><button type="button" class="secondary" onclick="changeGoal('goalVase999',-1)">−</button><input id="goalVase999" type="number" min="0" max="1" step="1" value="1"><button type="button" class="secondary" onclick="changeGoal('goalVase999',1)">＋</button></div></div>
 <div><label>其他收藏目標幣值（自行輸入）</label><input id="otherGoal" type="number" min="0" step="1" value="0"></div>
 </div>
 <div class="result" id="goalResult"></div>
@@ -127,11 +131,13 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <option value="double">全部抓雙倍寶寶</option>
 <option value="expired">全部抓過期寶寶</option>
 </select>
+<div class="summary-line" id="futureCatchStats"></div>
 </section>
 
 <section>
 <h2>🏆 最終收益預估</h2>
-<label style="display:flex;align-items:center;gap:8px"><input id="includeInventory" type="checkbox" style="width:auto"> 把目前已有的寶寶庫存加入預估</label>
+<label class="option-check"><input id="includeInventory" type="checkbox">加入庫存寶寶</label>
+<label class="option-check"><input id="includeSeal" type="checkbox">加入密令</label>
 <div class="summary-line" id="forecastStats"></div>
 <div class="summary-boxes">
 <div class="summary-box">預估總幣值<strong id="forecastTotal">0 幣</strong></div>
@@ -148,7 +154,7 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <button class="danger" onclick="resetData()">清除所有資料</button>
 </section>
 </main>
-<footer>我的花園世界 🌸 第十三版・收益預估調整</footer>
+<footer>我的花園世界 🌸 第十六版・密令週期起點修正</footer>
 <script>
 const $=id=>document.getElementById(id);
 function goalMax(id){return id==="goal9999"||id==="goal5999"||id==="goalVase999"?1:id==="goal3999"?3:Infinity;}
@@ -165,6 +171,7 @@ function save(){
  const ids=["goal9999","goal5999","goal3999","goalVase999","otherGoal","currentCoins","shopDays","flowerStatus","activityWeek","forecastMode"];
  const values={};ids.forEach(id=>values[id]=$(id).value);
  values.includeInventory=$("includeInventory").checked;
+ values.includeSeal=$("includeSeal").checked;
  values.dailyMode=$("dailyExpired").checked?"expired":"double";
  localStorage.setItem("gardenPlannerV5",JSON.stringify({values,inventory,dailyCatchDate,dailyCatchCount}));
 }
@@ -182,6 +189,7 @@ function load(){
  if(d){
   Object.keys(d.values||{}).forEach(id=>{if($(id) && id!=="includeInventory")$(id).value=d.values[id]});
   $("includeInventory").checked=!!d.values?.includeInventory;
+  $("includeSeal").checked=!!d.values?.includeSeal;
   const savedDailyMode=d.values?.dailyMode||"double";
   $("dailyExpired").checked=savedDailyMode==="expired";
   $("dailyDouble").checked=savedDailyMode!=="expired";
@@ -276,6 +284,7 @@ function forecast(){
   const perBaby=mode==="expired"?4:(week<=2?8:6);
   caughtCoins+=4*perBaby;
  }
+ // 每日自有花靈刷出的寶寶，依目前選擇的過期／雙倍方式估算
  const dailyCount=Number($("flowerStatus").value)||0;
  const dailyMode=$("dailyExpired").checked?"expired":"double";
  let selfCoins=0;
@@ -289,6 +298,9 @@ function forecast(){
  }
  const totalFutureBabies=count+days*dailyCount;
  const futureCoins=caughtCoins+selfCoins;
+ const catchDoubleCoins=mode==="double"?caughtCoins:0;
+ const catchExpiredCoins=mode==="expired"?caughtCoins:0;
+ $("futureCatchStats").innerHTML="寶寶總數：<strong>"+count.toLocaleString()+" 隻</strong>｜雙倍收益：<strong>"+catchDoubleCoins.toLocaleString()+" 幣</strong>｜過期收益：<strong>"+catchExpiredCoins.toLocaleString()+" 幣</strong>";
  let inventoryCoins=0;
  Object.keys(colors).forEach(c=>{
   const x=inventory[c]||{double:0,expired:0};
@@ -297,13 +309,34 @@ function forecast(){
  const current=num("currentCoins"),goal=num("goal9999")*9999+num("goal5999")*5999+num("goal3999")*3999+num("goalVase999")*999+num("otherGoal");
  const includeInventory=$("includeInventory").checked;
  const countedInventory=includeInventory?inventoryCoins:0;
- const total=current+futureCoins+countedInventory,left=Math.max(0,goal-total);
- $("forecastStats").innerHTML="未來可刷／抓數量：<strong>"+totalFutureBabies.toLocaleString()+" 隻</strong>（每日刷寶寶 "+(days*dailyCount).toLocaleString()+" 隻＋抓別人的寶寶 "+count.toLocaleString()+" 隻）｜未來預估收益：<strong>"+futureCoins.toLocaleString()+" 幣</strong>";
+
+ // 密令週期以每輪第 1 週星期一為起點；先扣除距離下一個週期起點的天數，再計算完整 28 天
+ const todayForSeal=new Date();
+ const weekdayOffset=(8-todayForSeal.getDay())%7; // 星期一為 0，星期日為 6
+ const weekForSeal=Number($("activityWeek").value)||1;
+ const weeksUntilCycleStart=(1-weekForSeal+4)%4;
+ const daysUntilCycleStart=weeksUntilCycleStart*7+weekdayOffset;
+ const daysAvailableForSeal=Math.max(0,days-daysUntilCycleStart);
+ const sealPeriods=Math.floor(daysAvailableForSeal/28);
+ const sealRate=[20,30,380][[0,18,30].indexOf(dailyCount)]||20;
+ const sealCoins=$("includeSeal").checked?sealPeriods*sealRate:0;
+
+ const total=current+futureCoins+countedInventory+sealCoins,left=Math.max(0,goal-total);
+ $("forecastStats").innerHTML="未來可刷／抓數量：<strong>"+totalFutureBabies.toLocaleString()+"隻</strong>（每日刷寶寶 "+(days*dailyCount).toLocaleString()+" 隻＋抓別人的寶寶 "+count.toLocaleString()+" 隻）｜未來密令收益：<strong>"+sealCoins.toLocaleString()+" 幣</strong>（"+($("includeSeal").checked?sealPeriods:0)+"期）";
  $("forecastTotal").textContent=total.toLocaleString()+" 幣";
  $("forecastGap").textContent=left.toLocaleString()+" 幣";
- $("forecastResult").textContent=left===0?"恭喜！可達成":"不可達成，再加油！！";
+ const resultBox=$("forecastResult").parentElement;
+ resultBox.classList.remove("result-fail","result-success");
+ if(left===0){
+  $("forecastResult").textContent="恭喜！可達成";
+  resultBox.classList.add("result-success");
+ }else{
+  $("forecastResult").textContent="不可達成，再加油！！";
+  resultBox.classList.add("result-fail");
+ }
  daily();
 }
+
 function exportData(){
  save();const data=localStorage.getItem("gardenPlannerV5");
  const blob=new Blob([data],{type:"application/json"}),a=document.createElement("a");
@@ -316,6 +349,7 @@ function importData(e){
   const d=JSON.parse(reader.result);if(!d.values)throw new Error();
   Object.keys(d.values).forEach(id=>{if($(id) && id!=="includeInventory")$(id).value=d.values[id]});
   $("includeInventory").checked=!!d.values.includeInventory;
+  $("includeSeal").checked=!!d.values.includeSeal;
   const importedDailyMode=d.values.dailyMode||"double";
   $("dailyExpired").checked=importedDailyMode==="expired";
   $("dailyDouble").checked=importedDailyMode!=="expired";
@@ -331,6 +365,7 @@ function resetData(){
  ["gardenPlannerV5","gardenPlannerV4","gardenPlannerV3","gardenPlannerV2","gardenPlanner","gardenBabies"].forEach(k=>localStorage.removeItem(k));
  location.reload();
 }
+// 所有會影響預估的欄位都共用同一套即時更新流程
 function updateAll(){
  goals();
  save();
@@ -340,6 +375,7 @@ function updateAll(){
  $(id).addEventListener("change",updateAll);
 });
 $("includeInventory").addEventListener("change",()=>{forecast();save()});
+$("includeSeal").addEventListener("change",()=>{forecast();save()});
 $("flowerStatus").addEventListener("change",updateAll);
 $("dailyExpired").addEventListener("change",()=>{
  if($("dailyExpired").checked)$("dailyDouble").checked=false;
@@ -351,6 +387,8 @@ $("dailyDouble").addEventListener("change",()=>{
  else if(!$("dailyExpired").checked)$("dailyExpired").checked=true;
  updateAll();
 });
+
+// 寶寶數量輸入時，即時同步到倉庫並更新收益與達標結果
 ["goldDouble","goldExpired","purpleDouble","purpleExpired","blueDouble","blueExpired"]
 .forEach(id=>$(id).addEventListener("input",()=>{
  const next={};
