@@ -41,7 +41,9 @@ button{border:0;border-radius:9px;padding:11px 15px;background:#9575b8;color:whi
 .summary-box.full.result-fail{background:#F5E5E2;border:1px solid #E8CBC5;color:#8F5148}
 .summary-box.full.result-success{background:#E3EFE6;border:1px solid #C9DDCE;color:#426B50}
 .summary-box{background:#f5eff9;padding:13px 10px;border-radius:10px;text-align:center;color:#79569b;font-weight:bold;line-height:1.6}
-.summary-box strong{display:block;font-size:21px;margin-top:4px}
+.summary-amount{display:flex;align-items:baseline;justify-content:center;gap:5px;margin-top:4px}
+.summary-amount span{font-size:13px;font-weight:normal}
+.summary-amount strong{display:inline;font-size:21px;margin:0}
 .summary-box.gap-muted{opacity:.58}
 .disclaimer{font-size:11px;font-weight:normal;color:#877e8f;line-height:1.6;margin:7px 0 0}
 .small{font-size:12px;color:#877e8f;line-height:1.7}
@@ -122,7 +124,7 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <label><input id="dailyDouble" type="checkbox" checked>刷雙倍花靈</label>
 <label><input id="dailyExpired" type="checkbox">刷過期花靈</label>
 </div>
-<p class="small">兩種刷取方式只能擇一；<br>雙倍花靈第 1、2 週以金色計算，第 3、4 週以紫色計算。</p>
+<p class="small">雙倍花靈第 1、2 週以金色計算，第 3、4 週以紫色計算；<br>過期花靈以金色計算。</p>
 </div>
 </div>
 <div class="summary-line" id="dailyStats"></div>
@@ -136,18 +138,18 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <option value="double">全部抓雙倍寶寶</option>
 <option value="expired">全部抓過期寶寶</option>
 </select>
-<p class="small">雙倍花靈第 1、2 週以金色計算，第 3、4 週以紫色計算。</p>
+<p class="small">雙倍花靈第 1、2 週以金色計算，第 3、4 週以紫色計算；<br>過期花靈以金色計算。</p>
 <div class="summary-line" id="futureCatchStats"></div>
 </section>
 
 <section>
 <h2>🏆 最終收益預估</h2>
 <label class="option-check"><input id="includeInventory" type="checkbox">加入庫存寶寶</label>
-<label class="option-check"><input id="includeSeal" type="checkbox">加入密令</label>
+<label class="option-check"><input id="includeSeal" type="checkbox">加入密令（僅算完整週期）</label>
 <div class="summary-line" id="forecastStats"></div>
 <div class="summary-boxes">
-<div class="summary-box">預估總幣值<strong id="forecastTotal">0 幣</strong></div>
-<div class="summary-box">距離收藏目標<strong id="forecastGap">0 幣</strong></div>
+<div class="summary-box">預估總幣值<div class="summary-amount"><span>共</span><strong id="forecastTotal">0 幣</strong></div></div>
+<div class="summary-box">距離收藏目標<div class="summary-amount"><span>相差</span><strong id="forecastGap">0 幣</strong></div></div>
 <div class="summary-box full">預估結果<strong id="forecastResult">尚未計算</strong><p class="disclaimer">本預估結果僅供參考，實際收益及遊戲內容請以遊戲內公告與實際情況為準。</p></div>
 </div>
 </section>
@@ -329,11 +331,11 @@ function forecast(){
  const total=current+futureCoins+countedInventory+sealCoins,left=Math.max(0,goal-total);
  const forecastLines=[];
  forecastLines.push("<div>未來可刷／抓數量：<strong>"+totalFutureBabies.toLocaleString()+" 隻</strong>（每日刷寶寶 "+(days*dailyCount).toLocaleString()+" 隻＋抓別人的寶寶 "+count.toLocaleString()+" 隻）｜總收益：<strong>"+futureCoins.toLocaleString()+" 幣</strong></div>");
- if($("includeSeal").checked){
-  forecastLines.push("<div>未來密令收益：<strong>"+sealCoins.toLocaleString()+" 幣</strong>（"+sealPeriods+" 期）</div>");
- }
  if(includeInventory){
   forecastLines.push("<div>庫存寶寶總數：<strong>"+inventoryCount.toLocaleString()+" 隻</strong>｜總收益：<strong>"+inventoryCoins.toLocaleString()+" 幣</strong></div>");
+ }
+ if($("includeSeal").checked){
+  forecastLines.push("<div>完整密令週期：<strong>"+sealPeriods+" 期</strong>｜總收益：<strong>"+sealCoins.toLocaleString()+" 幣</strong></div>");
  }
  $("forecastStats").innerHTML=forecastLines.join("");
  $("forecastTotal").textContent=total.toLocaleString()+" 幣";
