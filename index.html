@@ -40,8 +40,8 @@ button{border:0;border-radius:9px;padding:11px 15px;background:#9575b8;color:whi
 .summary-box.full{grid-column:1 / -1}
 .summary-box.full.result-fail{background:#F5E5E2;border:1px solid #E8CBC5;color:#8F5148}
 .summary-box.full.result-success{background:#E3EFE6;border:1px solid #C9DDCE;color:#426B50}
-.summary-box.full .forecast-result-heading{display:block;font-size:14px;font-weight:bold;line-height:1.6}
-.summary-box.full #forecastResult{display:block;font-size:14px;font-weight:bold;color:inherit;line-height:1.6;margin-top:5px}
+.summary-box.full .forecast-result-heading{display:block;font-size:16px;font-weight:bold;line-height:1.6}
+.summary-box.full #forecastResult{display:block;font-size:16px;font-weight:bold;color:inherit;line-height:1.6;margin-top:5px}
 .summary-box{background:#f5eff9;padding:13px 10px;border-radius:10px;text-align:center;color:#79569b;font-weight:bold;line-height:1.6}
 .summary-amount{display:flex;align-items:baseline;justify-content:center;gap:5px;margin-top:4px}
 .summary-amount span{font-size:13px;font-weight:normal}
@@ -152,11 +152,7 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <div class="summary-boxes">
 <div class="summary-box">預估總幣值<div class="summary-amount"><span>共</span><strong id="forecastTotal">0 幣</strong></div></div>
 <div class="summary-box">距離收藏目標<div class="summary-amount"><span>相差</span><strong id="forecastGap">0 幣</strong></div></div>
-<div class="summary-box full">
-<div class="forecast-result-heading">預估結果</div>
-<strong id="forecastResult">尚未計算</strong>
-<p class="disclaimer">本預估結果僅供參考，實際收益及遊戲內容請以遊戲內公告與實際情況為準。</p>
-</div>
+<div class="summary-box full"><div class="forecast-result-heading">預估結果</div><strong id="forecastResult">尚未計算</strong><p class="disclaimer">本預估結果僅供參考，實際收益及遊戲內容請以遊戲內公告與實際情況為準。</p></div>
 </div>
 </section>
 
@@ -168,7 +164,7 @@ footer{text-align:center;color:#999;font-size:12px;padding:20px}
 <button class="purple-action" onclick="resetData()">清除所有資料</button>
 </section>
 </main>
-<footer>我的花園世界 🌸 第十九版・預估結果排版與原色修正</footer>
+<footer>我的花園世界 🌸 第十九版・預估結果字體一致性微調</footer>
 <script>
 const $=id=>document.getElementById(id);
 function goalMax(id){return id==="goal9999"||id==="goal5999"||id==="goalVase999"?1:id==="goal3999"?3:Infinity;}
@@ -298,6 +294,7 @@ function forecast(){
   const perBaby=mode==="expired"?4:(week<=2?8:6);
   caughtCoins+=4*perBaby;
  }
+ // 每日自有花靈刷出的寶寶，依目前選擇的過期／雙倍方式估算
  const dailyCount=Number($("flowerStatus").value)||0;
  const dailyMode=$("dailyExpired").checked?"expired":"double";
  let selfCoins=0;
@@ -325,7 +322,7 @@ function forecast(){
  const countedInventory=includeInventory?inventoryCoins:0;
  // 密令以「下一輪第 1 週星期一」作為完整 28 天週期的起點；若目前正是第 1 週星期一，則從今天起算。
  const todayForSeal=new Date();
- const weekdayIndexFromMonday=(todayForSeal.getDay()+6)%7;
+ const weekdayIndexFromMonday=(todayForSeal.getDay()+6)%7; // 星期一為 0，星期日為 6
  const weekForSeal=Number($("activityWeek").value)||1;
  const elapsedInCycle=(weekForSeal-1)*7+weekdayIndexFromMonday;
  const daysUntilCycleStart=elapsedInCycle===0?0:28-elapsedInCycle;
@@ -388,6 +385,7 @@ function resetData(){
  ["gardenPlannerV5","gardenPlannerV4","gardenPlannerV3","gardenPlannerV2","gardenPlanner","gardenBabies"].forEach(k=>localStorage.removeItem(k));
  location.reload();
 }
+// 所有會影響預估的欄位都共用同一套即時更新流程
 function updateAll(){
  goals();
  save();
@@ -409,6 +407,8 @@ $("dailyDouble").addEventListener("change",()=>{
  else if(!$("dailyExpired").checked)$("dailyExpired").checked=true;
  updateAll();
 });
+
+// 寶寶數量輸入時，即時同步到倉庫並更新收益與達標結果
 ["goldDouble","goldExpired","purpleDouble","purpleExpired","blueDouble","blueExpired"]
 .forEach(id=>$(id).addEventListener("input",()=>{
  const next={};
